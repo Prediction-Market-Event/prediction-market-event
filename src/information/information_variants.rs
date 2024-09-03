@@ -27,7 +27,7 @@ impl V1 {
 
     pub(super) fn validate(&self, outcomes: Outcome) -> Result<(), String> {
         if self.title.len() > Self::MAX_TITLE_LENGTH {
-            return Err(format!("title length is over limit"));
+            return Err(format!("title length is over max"));
         }
         if self.description.len() > Self::MAX_DESCRIPTION_LENGTH {
             return Err(format!("description length is over max"));

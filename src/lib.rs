@@ -69,9 +69,18 @@ impl Event {
     }
 
     pub fn hash_sha256_hex(&self) -> Result<String, String> {
-        let a = self.hash_sha256()?;
+        let hash = self.hash_sha256()?;
 
-        Ok(format!("{:02x?}", a))
+        let mut hash_hex = String::with_capacity(64);
+        for b in hash {
+            hash_hex.push_str(&format!("{b:02x}"))
+        }
+
+        Ok(hash_hex)
+    }
+
+    pub fn is_hex_hash(hex_hash: &str) -> bool {
+        hex_hash.len() == 64 && matches!(hex_hash.find(|c: char| !c.is_ascii_hexdigit()), None)
     }
 }
 

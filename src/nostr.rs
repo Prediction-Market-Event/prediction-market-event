@@ -77,12 +77,7 @@ impl FutureEventPayoutAttestationPledge {
 
         let nostr_public_key = nostr_event.pubkey.serialize();
         let event_hex_hash = nostr_event.content().to_string();
-        if event_hex_hash.len() != 64
-            || matches!(
-                event_hex_hash.find(|c: char| !c.is_ascii_hexdigit()),
-                Some(_)
-            )
-        {
+        if !Event::is_hex_hash(&event_hex_hash) {
             return Err(format!(
                 "nostr event content does not have format of event hash hex"
             ));
