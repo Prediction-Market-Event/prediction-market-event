@@ -21,9 +21,9 @@ impl Information {
 
     pub fn validate(
         &self,
+        accepted_information_variant_ids: &[&str],
         outcome_count: Outcome,
         _units_to_payout: PayoutUnit,
-        accepted_information_variant_ids: &[&str],
     ) -> Result<(), String> {
         if !accepted_information_variant_ids.contains(&self.information_variant_id()) {
             return Err(format!("information variant id not accepted"));

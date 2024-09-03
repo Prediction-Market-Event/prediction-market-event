@@ -31,13 +31,11 @@ impl Event {
     }
 
     pub fn try_to_json_string(&self) -> Result<String, String> {
-        serde_json::to_string(self)
-            .map_err(|e| format!("failed event conversion to json: {e}"))
+        serde_json::to_string(self).map_err(|e| format!("failed event conversion to json: {e}"))
     }
 
     pub fn try_from_json_str(json: &str) -> Result<Self, String> {
-        serde_json::from_str(json)
-            .map_err(|e| format!("failed event conversion from json: {e}"))
+        serde_json::from_str(json).map_err(|e| format!("failed event conversion from json: {e}"))
     }
 
     pub fn validate(&self, accepted_information_variant_ids: &[&str]) -> Result<(), String> {
@@ -48,9 +46,9 @@ impl Event {
             return Err(format!("units to payout must be greater than 0"));
         }
         if let Err(e) = self.information.validate(
+            accepted_information_variant_ids,
             self.outcome_count,
             self.units_to_payout,
-            accepted_information_variant_ids,
         ) {
             return Err(format!("failed to validate event information: {e}"));
         }
