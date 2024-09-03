@@ -1,24 +1,12 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{Outcome, UnitsToPayout};
+use crate::Outcome;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub enum Information {
-    None,
-    V1(V1),
-}
+pub struct Empty;
 
-impl Information {
-    pub fn validate(
-        &self,
-        outcome_count: Outcome,
-        _units_to_payout: UnitsToPayout,
-    ) -> Result<(), String> {
-        match self {
-            Self::None => Ok(()),
-            Self::V1(i) => i.validate(outcome_count),
-        }
-    }
+impl Empty {
+    pub const ID: &'static str = "empty";
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
@@ -30,12 +18,14 @@ pub struct V1 {
 }
 
 impl V1 {
+    pub const ID: &'static str = "v1";
+
     // hard coded string length limits
     const MAX_TITLE_LENGTH: usize = 256;
     const MAX_DESCRIPTION_LENGTH: usize = 1024 * 10;
     const MAX_OUTCOME_TITLE_LENGTH: usize = 64;
 
-    pub fn validate(&self, outcomes: Outcome) -> Result<(), String> {
+    pub(super) fn validate(&self, outcomes: Outcome) -> Result<(), String> {
         if self.title.len() > Self::MAX_TITLE_LENGTH {
             return Err(format!("title length is over limit"));
         }
