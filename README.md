@@ -1,0 +1,1 @@
+a library for creating and attesting to prediction market events
