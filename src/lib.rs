@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use information::Information;
 use rand::random;
 use serde::{Deserialize, Serialize};
@@ -56,7 +58,18 @@ impl Event {
         Ok(())
     }
 
-    pub fn hash_sha256(&self) -> Result<[u8; 32], String> {
+    pub fn hash_hex(&self) -> Result<EventHashHex, String> {
+        let hash = self.hash_sha256()?;
+
+        let mut hash_hex = String::with_capacity(64);
+        for b in hash {
+            hash_hex.push_str(&format!("{b:02x}"))
+        }
+
+        Ok(EventHashHex(hash_hex))
+    }
+
+    fn hash_sha256(&self) -> Result<[u8; 32], String> {
         let mut hasher = Sha256::new();
 
         let json = serde_json::to_vec(self).map_err(|e| e.to_string())?;
@@ -67,21 +80,6 @@ impl Event {
 
         Ok(out)
     }
-
-    pub fn hash_sha256_hex(&self) -> Result<String, String> {
-        let hash = self.hash_sha256()?;
-
-        let mut hash_hex = String::with_capacity(64);
-        for b in hash {
-            hash_hex.push_str(&format!("{b:02x}"))
-        }
-
-        Ok(hash_hex)
-    }
-
-    pub fn is_hex_hash(hex_hash: &str) -> bool {
-        hex_hash.len() == 64 && matches!(hex_hash.find(|c: char| !c.is_ascii_hexdigit()), None)
-    }
 }
 
 pub type Outcome = u16;
@@ -89,15 +87,30 @@ pub type Outcome = u16;
 pub type PayoutUnit = u32;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub struct EventHashHex(pub String);
+
+impl Display for EventHashHex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl EventHashHex {
+    pub fn is_hash_hex(s: &str) -> bool {
+        s.len() == 64 && matches!(s.find(|c: char| !c.is_ascii_hexdigit()), None)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct EventPayout {
-    pub event_hash_hex: String,
+    pub event_hash_hex: EventHashHex,
     pub units_per_outcome: Vec<PayoutUnit>,
 }
 
 impl EventPayout {
     pub fn new(event: &Event, payout: Vec<PayoutUnit>) -> Result<Self, String> {
         let event_hash_hex = event
-            .hash_sha256_hex()
+            .hash_hex()
             .map_err(|e| format!("failed to get event hash hex: {e}"))?;
 
         Ok(Self {
@@ -118,7 +131,7 @@ impl EventPayout {
 
     pub fn validate(&self, event: &Event) -> Result<(), String> {
         let event_hash_hex = event
-            .hash_sha256_hex()
+            .hash_hex()
             .map_err(|e| format!("failed to get event hash hex: {e}"))?;
         if self.event_hash_hex != event_hash_hex {
             return Err(format!("event hashes do not match"));

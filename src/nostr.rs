@@ -1,6 +1,9 @@
-use nostr_sdk::{JsonUtil, Keys, Kind, Tag, TagStandard};
+use std::fmt::Display;
 
-use crate::{Event, EventPayout};
+use nostr_sdk::{JsonUtil, Keys, Kind, Tag, TagStandard};
+use serde::{Deserialize, Serialize};
+
+use crate::{Event, EventHashHex, EventPayout};
 
 pub struct NewEvent;
 
@@ -11,9 +14,9 @@ impl NewEvent {
         let event_json = event.try_to_json_string()?;
 
         let e_hash_hex = event
-            .hash_sha256_hex()
+            .hash_hex()
             .map_err(|e| format!("failed to get sha256 hex of event: {e}"))?;
-        let tags: Vec<Tag> = vec![TagStandard::Hashtag(e_hash_hex).into()];
+        let tags: Vec<Tag> = vec![TagStandard::Hashtag(e_hash_hex.0).into()];
 
         let builder = nostr_sdk::EventBuilder::new(Self::NOSTR_KIND, event_json, tags);
 
@@ -49,11 +52,11 @@ impl FutureEventPayoutAttestationPledge {
 
     pub fn create_nostr_event_json(event: &Event, secret_key: &str) -> Result<String, String> {
         let e_hash_hex = event
-            .hash_sha256_hex()
+            .hash_hex()
             .map_err(|e| format!("failed to get sha256 hex of event: {e}"))?;
-        let tags: Vec<Tag> = vec![TagStandard::Hashtag(e_hash_hex.clone()).into()];
+        let tags: Vec<Tag> = vec![TagStandard::Hashtag(e_hash_hex.0.clone()).into()];
 
-        let builder = nostr_sdk::EventBuilder::new(Self::NOSTR_KIND, e_hash_hex, tags);
+        let builder = nostr_sdk::EventBuilder::new(Self::NOSTR_KIND, e_hash_hex.0, tags);
 
         let keys = Keys::parse(secret_key)
             .map_err(|e| format!("failed to parse nostr secret key: {e}"))?;
@@ -68,22 +71,22 @@ impl FutureEventPayoutAttestationPledge {
 
     /// Returns serialized nostr public key and the hex hash of the [Event] it pledges to make a payout attestation to.
     /// IMPORTANT: EventPayout is not validated.
-    pub fn interpret_nostr_event_json(json: &str) -> Result<([u8; 32], String), String> {
+    pub fn interpret_nostr_event_json(json: &str) -> Result<(NostrPublicKeyHex, EventHashHex), String> {
         let nostr_event = nostr_sdk::Event::from_json(json)
             .map_err(|e| format!("failed to parse nostr event from json: {e}"))?;
         _ = nostr_event
             .verify()
             .map_err(|e| format!("failed to verify nostr event: {e}"))?;
 
-        let nostr_public_key = nostr_event.pubkey.serialize();
-        let event_hex_hash = nostr_event.content().to_string();
-        if !Event::is_hex_hash(&event_hex_hash) {
+        let nostr_public_key_hex = nostr_event.pubkey.to_hex();
+        let event_hash_hex = nostr_event.content().to_string();
+        if !EventHashHex::is_hash_hex(&event_hash_hex) {
             return Err(format!(
                 "nostr event content does not have format of event hash hex"
             ));
         }
 
-        Ok((nostr_public_key, event_hex_hash))
+        Ok((NostrPublicKeyHex(nostr_public_key_hex), EventHashHex(event_hash_hex)))
     }
 }
 
@@ -97,7 +100,7 @@ impl EventPayoutAttestation {
         secret_key: &str,
     ) -> Result<String, String> {
         let event_payout_json = event_payout.try_to_json_string()?;
-        let tags: Vec<Tag> = vec![TagStandard::Hashtag(event_payout.event_hash_hex.clone()).into()];
+        let tags: Vec<Tag> = vec![TagStandard::Hashtag(event_payout.event_hash_hex.0.clone()).into()];
 
         let builder = nostr_sdk::EventBuilder::new(Self::NOSTR_KIND, event_payout_json, tags);
 
@@ -114,17 +117,26 @@ impl EventPayoutAttestation {
 
     /// Returns serialized nostr public key and the [EventPayout] it signed.
     /// IMPORTANT: EventPayout is not validated.
-    pub fn interpret_nostr_event_json(json: &str) -> Result<([u8; 32], EventPayout), String> {
+    pub fn interpret_nostr_event_json(json: &str) -> Result<(NostrPublicKeyHex, EventPayout), String> {
         let nostr_event = nostr_sdk::Event::from_json(json)
             .map_err(|e| format!("failed to parse nostr event from json: {e}"))?;
         _ = nostr_event
             .verify()
             .map_err(|e| format!("failed to verify nostr event: {e}"))?;
 
-        let nostr_public_key = nostr_event.pubkey.serialize();
+        let nostr_public_key_hex = nostr_event.pubkey.to_hex();
         let event_payout = EventPayout::try_from_json_str(nostr_event.content())
             .map_err(|e| format!("failed to parse event payout from nostr event content: {e}"))?;
 
-        Ok((nostr_public_key, event_payout))
+        Ok((NostrPublicKeyHex(nostr_public_key_hex), event_payout))
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub struct NostrPublicKeyHex(pub String);
+
+impl Display for NostrPublicKeyHex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
