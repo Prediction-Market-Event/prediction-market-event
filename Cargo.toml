@@ -7,7 +7,7 @@ readme = "README.md"
 keywords = ["prediction", "market"]
 license = "MIT"
 repository = "https://github.com/Fedimint-Prediction-Markets/prediction-market-event"
-documentation = "https://docs.rs/prediction-market-event/latest/prediction-market-event/"
+documentation = "https://docs.rs/prediction-market-event/latest/prediction_market_event/"
 
 [dependencies]
 nostr-sdk = "0.34.0"
