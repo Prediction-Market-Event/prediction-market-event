@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{Event, EventHashHex, EventPayout};
 
+/// Nostr event containing a prediction market [Event]
 pub struct NewEvent;
 
 impl NewEvent {
@@ -46,6 +47,7 @@ impl NewEvent {
     }
 }
 
+/// Nostr event that pledges the event signer will make an [EventPayout] for a specific [Event] in the future.
 pub struct FutureEventPayoutAttestationPledge;
 
 impl FutureEventPayoutAttestationPledge {
@@ -91,6 +93,7 @@ impl FutureEventPayoutAttestationPledge {
     }
 }
 
+/// Nostr event that contains an [EventPayout] attestation
 pub struct EventPayoutAttestation;
 
 impl EventPayoutAttestation {

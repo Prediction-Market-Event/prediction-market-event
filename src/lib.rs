@@ -12,13 +12,21 @@ mod tests;
 /// Prediction market event
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct Event {
+    /// Randomness to ensure that unique events can be created easily.
     pub nonce: [u8; 32],
+
+    /// How many different outcomes does this event have.
     pub outcome_count: Outcome,
+
+    /// How many units can be used to make a payout to the outcomes.
     pub units_to_payout: PayoutUnit,
+
+    /// Information about what this event is actually about.
     pub information: Information,
 }
 
 impl Event {
+    /// Create new [Event]. [Event] is not validated.
     pub fn new_with_random_nonce(
         outcome_count: Outcome,
         units_to_payout: PayoutUnit,
@@ -32,14 +40,18 @@ impl Event {
         }
     }
 
+    /// Try to create json string from [Event]
     pub fn try_to_json_string(&self) -> Result<String, String> {
         serde_json::to_string(self).map_err(|e| format!("failed event conversion to json: {e}"))
     }
 
+    /// Try to parse json string into [Event]. [Event] is not validated.
     pub fn try_from_json_str(json: &str) -> Result<Self, String> {
         serde_json::from_str(json).map_err(|e| format!("failed event conversion from json: {e}"))
     }
 
+    /// Validate [Event].
+    /// accepted_information_variant_ids can be set to [Information::ALL_VARIANT_IDS] to accept any information variant.
     pub fn validate(&self, accepted_information_variant_ids: &[&str]) -> Result<(), String> {
         if self.outcome_count < 2 {
             return Err(format!("outcome count must be greater than 1"));
@@ -58,6 +70,7 @@ impl Event {
         Ok(())
     }
 
+    /// Get sha256 hex hash of [Event]. This should be used for identifying this event and integrity checking.
     pub fn hash_hex(&self) -> Result<EventHashHex, String> {
         let hash = self.hash_sha256()?;
 
@@ -69,6 +82,7 @@ impl Event {
         Ok(EventHashHex(hash_hex))
     }
 
+    /// internal sha256 hash
     fn hash_sha256(&self) -> Result<[u8; 32], String> {
         let mut hasher = Sha256::new();
 
@@ -82,10 +96,13 @@ impl Event {
     }
 }
 
+/// Outcome id type for [Event]
 pub type Outcome = u16;
 
+/// Payout unit type for [Event]
 pub type PayoutUnit = u32;
 
+/// Clarity struct for cleaner data handling.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct EventHashHex(pub String);
 
@@ -96,18 +113,25 @@ impl Display for EventHashHex {
 }
 
 impl EventHashHex {
+    /// Checks if s has structure of event hex hash.
     pub fn is_hash_hex(s: &str) -> bool {
         s.len() == 64 && matches!(s.find(|c: char| !c.is_ascii_hexdigit()), None)
     }
 }
 
+/// Describes a payout for a certain event.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct EventPayout {
+    /// Created from [Event::hash_hex]
     pub event_hash_hex: EventHashHex,
+
+    /// How [Event::units_to_payout] should be distributed to the outcomes.
+    /// Length should be [Event::outcome_count]
     pub units_per_outcome: Vec<PayoutUnit>,
 }
 
 impl EventPayout {
+    /// Create new [EventPayout]. [EventPayout] is not validated.
     pub fn new(event: &Event, payout: Vec<PayoutUnit>) -> Result<Self, String> {
         let event_hash_hex = event
             .hash_hex()
@@ -119,16 +143,19 @@ impl EventPayout {
         })
     }
 
+    /// Try to create json string from [EventPayout]
     pub fn try_to_json_string(&self) -> Result<String, String> {
         serde_json::to_string(self)
             .map_err(|e| format!("failed event payout conversion to json: {e}"))
     }
 
+    /// Try to parse json string into [EventPayout]. [EventPayout] is not validated.
     pub fn try_from_json_str(json: &str) -> Result<Self, String> {
         serde_json::from_str(json)
             .map_err(|e| format!("failed event payout conversion from json: {e}"))
     }
 
+    /// Validate [EventPayout]
     pub fn validate(&self, event: &Event) -> Result<(), String> {
         let event_hash_hex = event
             .hash_hex()
