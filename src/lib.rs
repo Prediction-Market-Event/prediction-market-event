@@ -7,9 +7,9 @@ use sha2::{Digest, Sha256};
 
 pub mod information;
 pub mod nostr;
-
 mod tests;
 
+/// Prediction market event
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct Event {
     pub nonce: [u8; 32],

@@ -10,6 +10,7 @@ pub struct NewEvent;
 impl NewEvent {
     pub const NOSTR_KIND: Kind = Kind::Custom(6275);
 
+    /// Creates [NewEvent] nostr event json
     pub fn create_nostr_event_json(event: &Event, secret_key: &str) -> Result<String, String> {
         let event_json = event.try_to_json_string()?;
 
@@ -50,6 +51,7 @@ pub struct FutureEventPayoutAttestationPledge;
 impl FutureEventPayoutAttestationPledge {
     pub const NOSTR_KIND: Kind = Kind::Custom(6276);
 
+    /// Creates [FutureEventPayoutAttestationPledge] nostr event json
     pub fn create_nostr_event_json(event: &Event, secret_key: &str) -> Result<String, String> {
         let e_hash_hex = event
             .hash_hex()
@@ -69,8 +71,7 @@ impl FutureEventPayoutAttestationPledge {
             .map_err(|e| format!("failed nostr event conversion to json: {e}"))
     }
 
-    /// Returns serialized nostr public key and the hex hash of the [Event] it pledges to make a payout attestation to.
-    /// IMPORTANT: EventPayout is not validated.
+    /// Returns nostr public key hex and the hex hash of the [Event] it pledges to make a payout attestation to.
     pub fn interpret_nostr_event_json(json: &str) -> Result<(NostrPublicKeyHex, EventHashHex), String> {
         let nostr_event = nostr_sdk::Event::from_json(json)
             .map_err(|e| format!("failed to parse nostr event from json: {e}"))?;
@@ -95,6 +96,7 @@ pub struct EventPayoutAttestation;
 impl EventPayoutAttestation {
     pub const NOSTR_KIND: Kind = Kind::Custom(6277);
 
+    /// Creates [EventPayoutAttestation] nostr event json
     pub fn create_nostr_event_json(
         event_payout: &EventPayout,
         secret_key: &str,
