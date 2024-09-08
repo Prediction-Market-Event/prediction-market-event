@@ -49,7 +49,7 @@ fn information_v1_too_many_outcome_titles() {
     );
 
     let res = event.validate(&[V1::ID]);
-    assert!(matches!(res, Err(_)));
+    assert!(matches!(res, Err(Error::Validation(_))));
     println!("{res:?}");
 }
 
@@ -71,7 +71,7 @@ fn information_v1_not_enough_outcome_titles() {
     );
 
     let res = event.validate(&[V1::ID]);
-    assert!(matches!(res, Err(_)));
+    assert!(matches!(res, Err(Error::Validation(_))));
     println!("{res:?}");
 }
 
@@ -93,7 +93,7 @@ fn information_v1_title_too_long() {
     );
 
     let res = event.validate(&[V1::ID]);
-    assert!(matches!(res, Err(_)));
+    assert!(matches!(res, Err(Error::Validation(_))));
     println!("{res:?}");
 }
 
@@ -117,7 +117,7 @@ fn information_v1_description_too_long() {
     );
 
     let res = event.validate(&[V1::ID]);
-    assert!(matches!(res, Err(_)));
+    assert!(matches!(res, Err(Error::Validation(_))));
     println!("{res:?}");
 }
 
@@ -139,6 +139,6 @@ fn information_v1_outcome_title_too_long() {
     );
 
     let res = event.validate(&[V1::ID]);
-    assert!(matches!(res, Err(_)));
+    assert!(matches!(res, Err(Error::Validation(_))));
     println!("{res:?}");
 }

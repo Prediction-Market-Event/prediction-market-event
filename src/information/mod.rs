@@ -30,9 +30,11 @@ impl Information {
         accepted_information_variant_ids: &[&str],
         outcome_count: Outcome,
         _units_to_payout: PayoutUnit,
-    ) -> Result<(), String> {
+    ) -> Result<(), Error> {
         if !accepted_information_variant_ids.contains(&self.information_variant_id()) {
-            return Err(format!("information variant id not accepted"));
+            return Err(Error::Validation(format!(
+                "information variant id not accepted"
+            )));
         }
 
         match self {

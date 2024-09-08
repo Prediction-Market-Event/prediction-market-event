@@ -24,7 +24,7 @@ fn event_1() {
     assert!(matches!(res, Ok(())));
 
     let res = event.validate(&[Empty::ID]);
-    assert!(matches!(res, Err(_)));
+    assert!(matches!(res, Err(Error::Validation(_))));
     println!("{res:?}");
 
     let json = event.try_to_json_string().unwrap();
@@ -51,7 +51,7 @@ fn event_information_variant_not_accepted() {
     );
 
     let res = event.validate(&[Empty::ID]);
-    assert!(matches!(res, Err(_)));
+    assert!(matches!(res, Err(Error::Validation(_))));
     println!("{res:?}");
 }
 
@@ -121,7 +121,7 @@ fn event_payout_not_enough_outcomes() {
     let event_payout = EventPayout::new(&event, vec![0, 10]).unwrap();
 
     let res = event_payout.validate(&event);
-    assert!(matches!(res, Err(_)));
+    assert!(matches!(res, Err(Error::Validation(_))));
     println!("{res:?}");
 }
 
@@ -141,7 +141,7 @@ fn event_payout_too_many_outcomes() {
     let event_payout = EventPayout::new(&event, vec![0, 10, 0, 0]).unwrap();
 
     let res = event_payout.validate(&event);
-    assert!(matches!(res, Err(_)));
+    assert!(matches!(res, Err(Error::Validation(_))));
     println!("{res:?}");
 }
 
@@ -161,7 +161,7 @@ fn event_payout_not_enough_units() {
     let event_payout = EventPayout::new(&event, vec![3, 3, 3]).unwrap();
 
     let res = event_payout.validate(&event);
-    assert!(matches!(res, Err(_)));
+    assert!(matches!(res, Err(Error::Validation(_))));
     println!("{res:?}");
 }
 
@@ -181,6 +181,6 @@ fn event_payout_too_many_units() {
     let event_payout = EventPayout::new(&event, vec![3, 3, 5]).unwrap();
 
     let res = event_payout.validate(&event);
-    assert!(matches!(res, Err(_)));
+    assert!(matches!(res, Err(Error::Validation(_))));
     println!("{res:?}");
 }

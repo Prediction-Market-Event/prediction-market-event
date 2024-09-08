@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::Outcome;
+use crate::{Error, Outcome};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct Empty;
@@ -25,22 +25,28 @@ impl V1 {
     const MAX_DESCRIPTION_LENGTH: usize = 1024 * 10;
     const MAX_OUTCOME_TITLE_LENGTH: usize = 64;
 
-    pub(super) fn validate(&self, outcomes: Outcome) -> Result<(), String> {
+    pub(super) fn validate(&self, outcomes: Outcome) -> Result<(), Error> {
         if self.title.len() > Self::MAX_TITLE_LENGTH {
-            return Err(format!("title length is over max"));
+            return Err(Error::Validation(format!(
+                "information v1: title length is over max"
+            )));
         }
         if self.description.len() > Self::MAX_DESCRIPTION_LENGTH {
-            return Err(format!("description length is over max"));
+            return Err(Error::Validation(format!(
+                "information v1: description length is over max"
+            )));
         }
         if self.outcome_titles.len() != usize::from(outcomes) {
-            return Err(format!(
-                "outcome titles array length does not equal number of outcomes"
-            ));
+            return Err(Error::Validation(format!(
+                "information v1: outcome titles array length does not equal number of outcomes"
+            )));
         }
 
         for (i, outcome_title) in self.outcome_titles.iter().enumerate() {
             if outcome_title.len() > Self::MAX_OUTCOME_TITLE_LENGTH {
-                return Err(format!("outcome {i}: title length is over max"));
+                return Err(Error::Validation(format!(
+                    "information v1: outcome {i} title length is over max"
+                )));
             }
         }
 

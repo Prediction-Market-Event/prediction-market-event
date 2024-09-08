@@ -71,7 +71,7 @@ fn nostr_future_event_payout_attestation_pledge_bad_content() {
     let res = nostr::FutureEventPayoutAttestationPledge::interpret_nostr_event_json(
         &nostr_event_json_with_change_in_content,
     );
-    assert!(matches!(res, Err(_)));
+    assert!(matches!(res, Err(Error::NostrEvent(_))));
     println!("{res:?}");
 }
 
@@ -92,7 +92,7 @@ fn nostr_future_event_payout_attestation_pledge_bad_signature() {
     let res = nostr::FutureEventPayoutAttestationPledge::interpret_nostr_event_json(
         &nostr_event_json_with_change_in_signature,
     );
-    assert!(matches!(res, Err(_)));
+    assert!(matches!(res, Err(Error::NostrEvent(_))));
     println!("{res:?}");
 }
 
@@ -129,8 +129,7 @@ fn nostr_event_payout_attestation_1() {
 #[test]
 fn nostr_event_payout_attestation_bad_content() {
     let nostr_event_json = r#"{"id":"a0538a6e9321bf52974964d437652a0574c10ca3438b74fe8e119d02f034bcc4","pubkey":"003cfbcb030c5d5ac2db5f0f9237a41e181af179fbf3e86ea27f98d8d71513b9","created_at":1725429583,"kind":6277,"tags":[["t","9be8074b1ff574e001c8f415b1f795a0c462ee5f74b59fa4f3170450ba7a2712"]],"content":"{\"event_hash_hex\":\"9be8074b1ff574e001c8f415b1f795a0c462ee5f74b59fa4f3170450ba7a2712\",\"units_per_outcome\":[1,0,3]}","sig":"416bc08fbd4879b2698d2033739a6808dba259880835af6c1fb24163c018e61268c86e52c330a295bc70ebc78e6d37d04616eafee7acd6ba0d34309d6706f598"}"#;
-    let res =
-        nostr::EventPayoutAttestation::interpret_nostr_event_json(&nostr_event_json);
+    let res = nostr::EventPayoutAttestation::interpret_nostr_event_json(&nostr_event_json);
     assert!(matches!(res, Ok(_)));
 
     let nostr_event_json_with_change_in_content = {
@@ -143,15 +142,14 @@ fn nostr_event_payout_attestation_bad_content() {
     let res = nostr::EventPayoutAttestation::interpret_nostr_event_json(
         &nostr_event_json_with_change_in_content,
     );
-    assert!(matches!(res, Err(_)));
+    assert!(matches!(res, Err(Error::NostrEvent(_))));
     println!("{res:?}");
 }
 
 #[test]
 fn nostr_event_payout_attestation_bad_signature() {
     let nostr_event_json = r#"{"id":"a0538a6e9321bf52974964d437652a0574c10ca3438b74fe8e119d02f034bcc4","pubkey":"003cfbcb030c5d5ac2db5f0f9237a41e181af179fbf3e86ea27f98d8d71513b9","created_at":1725429583,"kind":6277,"tags":[["t","9be8074b1ff574e001c8f415b1f795a0c462ee5f74b59fa4f3170450ba7a2712"]],"content":"{\"event_hash_hex\":\"9be8074b1ff574e001c8f415b1f795a0c462ee5f74b59fa4f3170450ba7a2712\",\"units_per_outcome\":[1,0,3]}","sig":"416bc08fbd4879b2698d2033739a6808dba259880835af6c1fb24163c018e61268c86e52c330a295bc70ebc78e6d37d04616eafee7acd6ba0d34309d6706f598"}"#;
-    let res =
-        nostr::EventPayoutAttestation::interpret_nostr_event_json(&nostr_event_json);
+    let res = nostr::EventPayoutAttestation::interpret_nostr_event_json(&nostr_event_json);
     assert!(matches!(res, Ok(_)));
 
     let nostr_event_json_with_change_in_signature = {
@@ -164,6 +162,6 @@ fn nostr_event_payout_attestation_bad_signature() {
     let res = nostr::EventPayoutAttestation::interpret_nostr_event_json(
         &nostr_event_json_with_change_in_signature,
     );
-    assert!(matches!(res, Err(_)));
+    assert!(matches!(res, Err(Error::NostrEvent(_))));
     println!("{res:?}");
 }
