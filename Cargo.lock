@@ -961,7 +961,7 @@ dependencies = [
 
 [[package]]
 name = "prediction-market-event"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "nostr-sdk",
  "rand",
