@@ -123,7 +123,7 @@ impl Display for EventHashHex {
 
 impl EventHashHex {
     /// Checks if s has structure of event hex hash.
-    pub fn is_hash_hex(s: &str) -> bool {
+    pub fn is_valid_format(s: &str) -> bool {
         s.len() == 64 && matches!(s.find(|c: char| !c.is_ascii_hexdigit()), None)
     }
 }

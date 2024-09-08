@@ -32,7 +32,7 @@ fn event_1() {
     assert_eq!(event, event_from_json);
 
     let hash_hex = event.hash_hex().unwrap();
-    assert!(EventHashHex::is_hash_hex(&hash_hex.0));
+    assert!(EventHashHex::is_valid_format(&hash_hex.0));
 
     println!("event json: {json}\n\nhash hex: {hash_hex}");
 }

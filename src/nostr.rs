@@ -64,7 +64,7 @@ impl FutureEventPayoutAttestationPledge {
 
         let nostr_public_key_hex = nostr_event.pubkey.to_hex();
         let content = nostr_event.content().to_string();
-        if !EventHashHex::is_hash_hex(&content) {
+        if !EventHashHex::is_valid_format(&content) {
             return Err(Error::Validation(format!(
                 "nostr event content does not have format of event hash hex"
             )));
@@ -129,5 +129,12 @@ pub struct NostrPublicKeyHex(pub String);
 impl Display for NostrPublicKeyHex {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+
+impl NostrPublicKeyHex {
+    /// Checks if s has structure of nostr public key hex.
+    pub fn is_valid_format(s: &str) -> bool {
+        s.len() == 64 && matches!(s.find(|c: char| !c.is_ascii_hexdigit()), None)
     }
 }
