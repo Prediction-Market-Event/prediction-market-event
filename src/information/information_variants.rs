@@ -3,10 +3,10 @@ use serde::{Deserialize, Serialize};
 use crate::{Error, Outcome};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub struct Empty;
+pub struct None;
 
-impl Empty {
-    pub const ID: &'static str = "empty";
+impl None {
+    pub const ID: &'static str = "none";
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]

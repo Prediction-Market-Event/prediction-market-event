@@ -3,10 +3,10 @@ use crate::{information::*, *};
 
 
 #[test]
-fn information_empty_1() {
-    let event = Event::new_with_random_nonce(3, 1, Information::Empty);
+fn information_none_1() {
+    let event = Event::new_with_random_nonce(3, 1, Information::None);
 
-    let res = event.validate(&[Empty::ID]);
+    let res = event.validate(&[None::ID]);
     assert!(matches!(res, Ok(())));
 }
 

@@ -20,10 +20,10 @@ fn event_1() {
     let res = event.validate(&[V1::ID]);
     assert!(matches!(res, Ok(())));
 
-    let res = event.validate(&[Empty::ID, V1::ID]);
+    let res = event.validate(&[None::ID, V1::ID]);
     assert!(matches!(res, Ok(())));
 
-    let res = event.validate(&[Empty::ID]);
+    let res = event.validate(&[None::ID]);
     assert!(matches!(res, Err(Error::Validation(_))));
     println!("{res:?}");
 
@@ -39,7 +39,7 @@ fn event_1() {
 
 #[test]
 fn event_2() {
-    let event = Event::new_with_random_nonce(3, 1, Information::Empty);
+    let event = Event::new_with_random_nonce(3, 1, Information::None);
     let json = event.try_to_json_string().unwrap();
     let hash_hex = event.hash_hex().unwrap();
 
@@ -59,7 +59,7 @@ fn event_information_variant_not_accepted() {
         }),
     );
 
-    let res = event.validate(&[Empty::ID]);
+    let res = event.validate(&[None::ID]);
     assert!(matches!(res, Err(Error::Validation(_))));
     println!("{res:?}");
 }
