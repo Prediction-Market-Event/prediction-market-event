@@ -3,7 +3,7 @@ use std::fmt::Display;
 pub use error::Error;
 use information::Information;
 use rand::random;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use sha2::{Digest, Sha256};
 
 mod error;
@@ -16,6 +16,8 @@ mod tests;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct Event {
     /// Randomness to ensure that unique events can be created easily.
+    #[serde(serialize_with = "serialize_nonce")]
+    #[serde(deserialize_with = "deserialize_nonce")]
     pub nonce: [u8; 32],
 
     /// How many different outcomes does this event have.
@@ -82,11 +84,7 @@ impl Event {
     /// Get sha256 hex hash of [Event]. This should be used for identifying this event and integrity checking.
     pub fn hash_hex(&self) -> Result<EventHashHex, Error> {
         let hash = self.hash_sha256()?;
-
-        let mut hash_hex = String::with_capacity(64);
-        for b in hash {
-            hash_hex.push_str(&format!("{b:02x}"))
-        }
+        let hash_hex = byte_array_to_hex_string(&hash);
 
         Ok(EventHashHex(hash_hex))
     }
@@ -103,6 +101,25 @@ impl Event {
 
         Ok(out)
     }
+}
+
+fn serialize_nonce<S>(value: &[u8; 32], serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    serializer.serialize_str(&byte_array_to_hex_string(value))
+}
+
+fn deserialize_nonce<'de, D>(deserializer: D) -> Result<[u8; 32], D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    let v = hex_string_to_byte_array(&s).map_err(serde::de::Error::custom)?;
+    let a: [u8; 32] = v
+        .try_into()
+        .map_err(|_| serde::de::Error::custom("hex string does not represent 32 bytes of data"))?;
+    Ok(a)
 }
 
 /// Outcome id type for [Event]
@@ -187,4 +204,35 @@ impl EventPayout {
 
         Ok(())
     }
+}
+
+fn byte_array_to_hex_string(array: &[u8]) -> String {
+    let mut s = String::with_capacity(array.len() * 2);
+    for b in array {
+        s.push_str(&format!("{b:02x}"))
+    }
+
+    s
+}
+
+fn hex_string_to_byte_array(hex_string: &str) -> Result<Vec<u8>, &str> {
+    let error = Err("invalid hex string");
+
+    if hex_string.len() % 2 != 0 {
+        return error;
+    }
+
+    let mut byte_array = Vec::with_capacity(hex_string.len() / 2);
+
+    for chunk in hex_string.as_bytes().chunks(2) {
+        let Ok(hex_chunk) = std::str::from_utf8(chunk) else {
+            return error;
+        };
+        let Ok(byte) = u8::from_str_radix(hex_chunk, 16) else {
+            return error;
+        };
+        byte_array.push(byte);
+    }
+
+    Ok(byte_array)
 }

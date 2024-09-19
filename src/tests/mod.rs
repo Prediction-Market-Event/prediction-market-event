@@ -38,6 +38,15 @@ fn event_1() {
 }
 
 #[test]
+fn event_2() {
+    let event = Event::new_with_random_nonce(3, 1, Information::Empty);
+    let json = event.try_to_json_string().unwrap();
+    let hash_hex = event.hash_hex().unwrap();
+
+    println!("event json: {json}\n\nhash hex: {hash_hex}");
+}
+
+#[test]
 fn event_information_variant_not_accepted() {
     let event = Event::new_with_random_nonce(
         3,
