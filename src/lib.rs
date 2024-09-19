@@ -16,8 +16,8 @@ mod tests;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct Event {
     /// Randomness to ensure that unique events can be created easily.
-    #[serde(serialize_with = "serialize_nonce")]
-    #[serde(deserialize_with = "deserialize_nonce")]
+    #[serde(serialize_with = "Event::serialize_nonce")]
+    #[serde(deserialize_with = "Event::deserialize_nonce")]
     pub nonce: [u8; 32],
 
     /// How many different outcomes does this event have.
@@ -101,25 +101,25 @@ impl Event {
 
         Ok(out)
     }
-}
 
-fn serialize_nonce<S>(value: &[u8; 32], serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    serializer.serialize_str(&byte_array_to_hex_string(value))
-}
+    fn serialize_nonce<S>(value: &[u8; 32], serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&byte_array_to_hex_string(value))
+    }
 
-fn deserialize_nonce<'de, D>(deserializer: D) -> Result<[u8; 32], D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let s = String::deserialize(deserializer)?;
-    let v = hex_string_to_byte_array(&s).map_err(serde::de::Error::custom)?;
-    let a: [u8; 32] = v
-        .try_into()
-        .map_err(|_| serde::de::Error::custom("hex string does not represent 32 bytes of data"))?;
-    Ok(a)
+    fn deserialize_nonce<'de, D>(deserializer: D) -> Result<[u8; 32], D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        let v = hex_string_to_byte_array(&s).map_err(serde::de::Error::custom)?;
+        let a: [u8; 32] = v.try_into().map_err(|_| {
+            serde::de::Error::custom("hex string does not represent 32 bytes of data")
+        })?;
+        Ok(a)
+    }
 }
 
 /// Outcome id type for [Event]
