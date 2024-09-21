@@ -10,7 +10,7 @@ repository = "https://github.com/Fedimint-Prediction-Markets/prediction-market-e
 documentation = "https://docs.rs/prediction-market-event/latest/prediction_market_event/"
 
 [dependencies]
-nostr-sdk = "0.34.0"
+nostr-sdk = { version = "0.34.0", default-features = false }
 rand = "0.8.5"
 serde = { version = "1.0.209", features = [ "derive" ] }
 serde_json = "1.0.127"
