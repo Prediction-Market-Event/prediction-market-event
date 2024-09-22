@@ -36,7 +36,7 @@ impl NewEvent {
     }
 }
 
-/// Nostr event that pledges the event signer will make an [EventPayout] for a specific [Event] in the future.
+/// Nostr event that pledges the event signer will make an [EventPayout] attestation for a specific [Event] in the future.
 pub struct FutureEventPayoutAttestationPledge;
 
 impl FutureEventPayoutAttestationPledge {
