@@ -1,66 +1,72 @@
 use std::fmt::Display;
 
-use nostr_sdk::{JsonUtil, Keys, Kind, Tag, TagStandard};
+use nostr_sdk::{Event as NostrEvent, EventBuilder, JsonUtil, Keys, Kind, Tag, TagStandard};
 use serde::{Deserialize, Serialize};
 
-use crate::{Error, Event, EventHashHex, EventPayout};
+use crate::{Error, Event as PredictionMarketEvent, EventHashHex, EventPayout};
 
-/// Nostr event containing a prediction market [Event]
+/// [NostrEvent] containing a [PredictionMarketEvent]
 pub struct NewEvent;
 
 impl NewEvent {
     pub const NOSTR_KIND: Kind = Kind::Custom(6275);
 
-    /// Creates [NewEvent] nostr event json
-    pub fn create_nostr_event_json(event: &Event, secret_key: &str) -> Result<String, Error> {
+    /// Creates [NewEvent] [NostrEvent] json string
+    pub fn create_nostr_event_json(
+        event: &PredictionMarketEvent,
+        secret_key: &str,
+    ) -> Result<String, Error> {
         let event_json = event.try_to_json_string()?;
 
-        let e_hash_hex = event.hash_hex()?;
-        let tags: Vec<Tag> = vec![TagStandard::Hashtag(e_hash_hex.0).into()];
+        let event_hash_hex = event.hash_hex()?;
+        let tags: Vec<Tag> = vec![TagStandard::Hashtag(event_hash_hex.0).into()];
 
-        let builder = nostr_sdk::EventBuilder::new(Self::NOSTR_KIND, event_json, tags);
+        let builder = EventBuilder::new(Self::NOSTR_KIND, event_json, tags);
 
         let keys = Keys::parse(secret_key).map_err(|e| Error::from(e))?;
-        let event = builder.to_event(&keys).map_err(|e| Error::from(e))?;
+        let nostr_event = builder.to_event(&keys).map_err(|e| Error::from(e))?;
 
-        event.try_as_json().map_err(|e| Error::from(e))
+        nostr_event.try_as_json().map_err(|e| Error::from(e))
     }
 
-    /// Returns the [Event] found in nostr event.
-    /// IMPORTANT: the returned [Event] is not validated.
-    pub fn interpret_nostr_event_json(json: &str) -> Result<Event, Error> {
-        let nostr_event = nostr_sdk::Event::from_json(json).map_err(|e| Error::from(e))?;
-        _ = nostr_event.verify().map_err(|e| Error::from(e))?;
+    /// Returns the [PredictionMarketEvent] found in nostr event.
+    /// IMPORTANT: the returned [PredictionMarketEvent] is not validated.
+    pub fn interpret_nostr_event_json(json: &str) -> Result<PredictionMarketEvent, Error> {
+        let nostr_event = NostrEvent::from_json(json).map_err(|e| Error::from(e))?;
+        nostr_event.verify().map_err(|e| Error::from(e))?;
 
-        Event::try_from_json_str(nostr_event.content())
+        PredictionMarketEvent::try_from_json_str(nostr_event.content())
     }
 }
 
-/// Nostr event that pledges the event signer will make an [EventPayout] attestation for a specific [Event] in the future.
+/// [NostrEvent] that pledges the signer will make an [EventPayoutAttestation] for a specific [PredictionMarketEvent] in the future.
 pub struct FutureEventPayoutAttestationPledge;
 
 impl FutureEventPayoutAttestationPledge {
     pub const NOSTR_KIND: Kind = Kind::Custom(6276);
 
-    /// Creates [FutureEventPayoutAttestationPledge] nostr event json
-    pub fn create_nostr_event_json(event: &Event, secret_key: &str) -> Result<String, Error> {
-        let e_hash_hex = event.hash_hex()?;
-        let tags: Vec<Tag> = vec![TagStandard::Hashtag(e_hash_hex.0.clone()).into()];
+    /// Creates [FutureEventPayoutAttestationPledge] [NostrEvent] json string
+    pub fn create_nostr_event_json(
+        event: &PredictionMarketEvent,
+        secret_key: &str,
+    ) -> Result<String, Error> {
+        let event_hash_hex = event.hash_hex()?;
+        let tags: Vec<Tag> = vec![TagStandard::Hashtag(event_hash_hex.0.clone()).into()];
 
-        let builder = nostr_sdk::EventBuilder::new(Self::NOSTR_KIND, e_hash_hex.0, tags);
+        let builder = EventBuilder::new(Self::NOSTR_KIND, event_hash_hex.0, tags);
 
         let keys = Keys::parse(secret_key).map_err(|e| Error::from(e))?;
-        let event = builder.to_event(&keys).map_err(|e| Error::from(e))?;
+        let nostr_event = builder.to_event(&keys).map_err(|e| Error::from(e))?;
 
-        event.try_as_json().map_err(|e| Error::from(e))
+        nostr_event.try_as_json().map_err(|e| Error::from(e))
     }
 
-    /// Returns nostr public key hex and the hex hash of the [Event] it pledges to make a payout attestation to.
+    /// Returns [NostrPublicKeyHex] and the [EventHashHex] it pledges to make a [EventPayoutAttestation] to.
     pub fn interpret_nostr_event_json(
         json: &str,
     ) -> Result<(NostrPublicKeyHex, EventHashHex), Error> {
-        let nostr_event = nostr_sdk::Event::from_json(json).map_err(|e| Error::from(e))?;
-        _ = nostr_event.verify().map_err(|e| Error::from(e))?;
+        let nostr_event = NostrEvent::from_json(json).map_err(|e| Error::from(e))?;
+        nostr_event.verify().map_err(|e| Error::from(e))?;
 
         let nostr_public_key_hex = nostr_event.pubkey.to_hex();
         let content = nostr_event.content().to_string();
@@ -77,13 +83,13 @@ impl FutureEventPayoutAttestationPledge {
     }
 }
 
-/// Nostr event that contains an [EventPayout] attestation
+/// [NostrEvent] that contains an [EventPayout] attestation
 pub struct EventPayoutAttestation;
 
 impl EventPayoutAttestation {
     pub const NOSTR_KIND: Kind = Kind::Custom(6277);
 
-    /// Creates [EventPayoutAttestation] nostr event json
+    /// Creates [EventPayoutAttestation] [NostrEvent] json string
     pub fn create_nostr_event_json(
         event_payout: &EventPayout,
         secret_key: &str,
@@ -92,29 +98,21 @@ impl EventPayoutAttestation {
         let tags: Vec<Tag> =
             vec![TagStandard::Hashtag(event_payout.event_hash_hex.0.clone()).into()];
 
-        let builder = nostr_sdk::EventBuilder::new(Self::NOSTR_KIND, event_payout_json, tags);
+        let builder = EventBuilder::new(Self::NOSTR_KIND, event_payout_json, tags);
 
-        let keys = Keys::parse(secret_key)
-            .map_err(|e| Error::from(e))?;
-        let event = builder
-            .to_event(&keys)
-            .map_err(|e| Error::from(e))?;
+        let keys = Keys::parse(secret_key).map_err(|e| Error::from(e))?;
+        let nostr_event = builder.to_event(&keys).map_err(|e| Error::from(e))?;
 
-        event
-            .try_as_json()
-            .map_err(|e| Error::from(e))
+        nostr_event.try_as_json().map_err(|e| Error::from(e))
     }
 
-    /// Returns serialized nostr public key and the [EventPayout] it signed.
-    /// IMPORTANT: EventPayout is not validated.
+    /// Returns [NostrPublicKeyHex] and the [EventPayout] it signed.
+    /// IMPORTANT: [EventPayout] is not validated.
     pub fn interpret_nostr_event_json(
         json: &str,
     ) -> Result<(NostrPublicKeyHex, EventPayout), Error> {
-        let nostr_event = nostr_sdk::Event::from_json(json)
-            .map_err(|e| Error::from(e))?;
-        _ = nostr_event
-            .verify()
-            .map_err(|e| Error::from(e))?;
+        let nostr_event = NostrEvent::from_json(json).map_err(|e| Error::from(e))?;
+        nostr_event.verify().map_err(|e| Error::from(e))?;
 
         let nostr_public_key_hex = nostr_event.pubkey.to_hex();
         let event_payout = EventPayout::try_from_json_str(nostr_event.content())?;
