@@ -9,7 +9,7 @@ use crate::{Error, Event as PredictionMarketEvent, EventHashHex, EventPayout};
 pub struct NewEvent;
 
 impl NewEvent {
-    pub const NOSTR_KIND: Kind = Kind::Custom(6275);
+    pub const NOSTR_KIND: u16 = 6275;
 
     /// Creates [NewEvent] [NostrEvent] json string
     pub fn create_nostr_event_json(
@@ -21,7 +21,7 @@ impl NewEvent {
         let event_hash_hex = event.hash_hex()?;
         let tags: Vec<Tag> = vec![TagStandard::Hashtag(event_hash_hex.0).into()];
 
-        let builder = EventBuilder::new(Self::NOSTR_KIND, event_json, tags);
+        let builder = EventBuilder::new(Kind::Custom(Self::NOSTR_KIND), event_json, tags);
 
         let keys = Keys::parse(secret_key).map_err(|e| Error::from(e))?;
         let nostr_event = builder.to_event(&keys).map_err(|e| Error::from(e))?;
@@ -43,7 +43,7 @@ impl NewEvent {
 pub struct FutureEventPayoutAttestationPledge;
 
 impl FutureEventPayoutAttestationPledge {
-    pub const NOSTR_KIND: Kind = Kind::Custom(6276);
+    pub const NOSTR_KIND: u16 = 6276;
 
     /// Creates [FutureEventPayoutAttestationPledge] [NostrEvent] json string
     pub fn create_nostr_event_json(
@@ -53,7 +53,7 @@ impl FutureEventPayoutAttestationPledge {
         let event_hash_hex = event.hash_hex()?;
         let tags: Vec<Tag> = vec![TagStandard::Hashtag(event_hash_hex.0.clone()).into()];
 
-        let builder = EventBuilder::new(Self::NOSTR_KIND, event_hash_hex.0, tags);
+        let builder = EventBuilder::new(Kind::Custom(Self::NOSTR_KIND), event_hash_hex.0, tags);
 
         let keys = Keys::parse(secret_key).map_err(|e| Error::from(e))?;
         let nostr_event = builder.to_event(&keys).map_err(|e| Error::from(e))?;
@@ -87,7 +87,7 @@ impl FutureEventPayoutAttestationPledge {
 pub struct EventPayoutAttestation;
 
 impl EventPayoutAttestation {
-    pub const NOSTR_KIND: Kind = Kind::Custom(6277);
+    pub const NOSTR_KIND: u16 = 6277;
 
     /// Creates [EventPayoutAttestation] [NostrEvent] json string
     pub fn create_nostr_event_json(
@@ -98,7 +98,7 @@ impl EventPayoutAttestation {
         let tags: Vec<Tag> =
             vec![TagStandard::Hashtag(event_payout.event_hash_hex.0.clone()).into()];
 
-        let builder = EventBuilder::new(Self::NOSTR_KIND, event_payout_json, tags);
+        let builder = EventBuilder::new(Kind::Custom(Self::NOSTR_KIND), event_payout_json, tags);
 
         let keys = Keys::parse(secret_key).map_err(|e| Error::from(e))?;
         let nostr_event = builder.to_event(&keys).map_err(|e| Error::from(e))?;
