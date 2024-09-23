@@ -1,7 +1,6 @@
 #[allow(unused_imports)]
 use crate::{information::*, *};
 
-
 #[test]
 fn information_none_1() {
     let event = Event::new_with_random_nonce(3, 1, Information::None);
