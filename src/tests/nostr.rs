@@ -14,7 +14,7 @@ fn nostr_new_event_1() {
         }),
     );
 
-    let secret_key = nostr_sdk::SecretKey::generate().to_secret_hex();
+    let secret_key = ::nostr::SecretKey::generate().to_secret_hex();
 
     let nostr_event_json = nostr::NewEvent::create_nostr_event_json(&event, &secret_key).unwrap();
     let event_from_nostr_event_json =
@@ -37,11 +37,11 @@ fn nostr_future_event_payout_attestation_pledge_1() {
         }),
     );
 
-    let keys = nostr_sdk::Keys::generate();
+    let keys = ::nostr::Keys::generate();
 
     let nostr_event_json = nostr::FutureEventPayoutAttestationPledge::create_nostr_event_json(
         &event,
-        &keys.secret_key().unwrap().to_secret_hex(),
+        &keys.secret_key().to_secret_hex(),
     )
     .unwrap();
     let (pk, h) =
@@ -110,11 +110,11 @@ fn nostr_event_payout_attestation_1() {
     );
     let event_payout = EventPayout::new(&event, vec![1, 0, 3]).unwrap();
 
-    let keys = nostr_sdk::Keys::generate();
+    let keys = ::nostr::Keys::generate();
 
     let nostr_event_json = nostr::EventPayoutAttestation::create_nostr_event_json(
         &event_payout,
-        &keys.secret_key().unwrap().to_secret_hex(),
+        &keys.secret_key().to_secret_hex(),
     )
     .unwrap();
     let (pk, e) =

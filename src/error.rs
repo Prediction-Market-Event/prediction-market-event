@@ -9,11 +9,11 @@ pub enum Error {
     Validation(String),
 
     #[error("nostr event: {0}")]
-    NostrEvent(#[from] nostr_sdk::nostr::event::Error),
+    NostrEvent(#[from] nostr::event::Error),
 
     #[error("nostr event builder: {0}")]
-    NostrEventBuilder(#[from] nostr_sdk::nostr::event::builder::Error),
+    NostrEventBuilder(#[from] nostr::event::builder::Error),
 
     #[error("nostr keys: {0}")]
-    NostrKey(#[from] nostr_sdk::nostr::key::Error),
+    NostrKey(#[from] nostr::key::Error),
 }

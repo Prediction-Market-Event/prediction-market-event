@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use nostr_sdk::{Event as NostrEvent, EventBuilder, JsonUtil, Keys, Kind, Tag, TagStandard};
+use nostr::{Event as NostrEvent, EventBuilder, JsonUtil, Keys, Kind, Tag, TagStandard};
 use serde::{Deserialize, Serialize};
 
 use crate::{Error, Event as PredictionMarketEvent, EventHashHex, EventPayout};
@@ -35,7 +35,7 @@ impl NewEvent {
         let nostr_event = NostrEvent::from_json(json).map_err(|e| Error::from(e))?;
         nostr_event.verify().map_err(|e| Error::from(e))?;
 
-        PredictionMarketEvent::try_from_json_str(nostr_event.content())
+        PredictionMarketEvent::try_from_json_str(&nostr_event.content)
     }
 }
 
@@ -69,7 +69,7 @@ impl FutureEventPayoutAttestationPledge {
         nostr_event.verify().map_err(|e| Error::from(e))?;
 
         let nostr_public_key_hex = nostr_event.pubkey.to_hex();
-        let content = nostr_event.content().to_string();
+        let content = nostr_event.content;
         if !EventHashHex::is_valid_format(&content) {
             return Err(Error::Validation(format!(
                 "nostr event content does not have format of event hash hex"
@@ -115,7 +115,7 @@ impl EventPayoutAttestation {
         nostr_event.verify().map_err(|e| Error::from(e))?;
 
         let nostr_public_key_hex = nostr_event.pubkey.to_hex();
-        let event_payout = EventPayout::try_from_json_str(nostr_event.content())?;
+        let event_payout = EventPayout::try_from_json_str(&nostr_event.content)?;
 
         Ok((NostrPublicKeyHex(nostr_public_key_hex), event_payout))
     }
