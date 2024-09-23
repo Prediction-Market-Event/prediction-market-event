@@ -23,17 +23,18 @@ impl NewEvent {
 
         let builder = EventBuilder::new(Kind::from_u16(Self::NOSTR_KIND), event_json, tags);
 
-        let keys = Keys::parse(secret_key).map_err(|e| Error::from(e))?;
-        let nostr_event = builder.to_event(&keys).map_err(|e| Error::from(e))?;
+        let keys = Keys::parse(secret_key)?;
+        let nostr_event = builder.to_event(&keys)?;
+        let nostr_event_json = nostr_event.try_as_json()?;
 
-        nostr_event.try_as_json().map_err(|e| Error::from(e))
+        Ok(nostr_event_json)
     }
 
     /// Returns the [PredictionMarketEvent] found in nostr event.
     /// IMPORTANT: the returned [PredictionMarketEvent] is not validated.
     pub fn interpret_nostr_event_json(json: &str) -> Result<PredictionMarketEvent, Error> {
-        let nostr_event = NostrEvent::from_json(json).map_err(|e| Error::from(e))?;
-        nostr_event.verify().map_err(|e| Error::from(e))?;
+        let nostr_event = NostrEvent::from_json(json)?;
+        nostr_event.verify()?;
 
         let event = PredictionMarketEvent::try_from_json_str(&nostr_event.content)?;
 
@@ -75,22 +76,23 @@ impl FutureEventPayoutAttestationPledge {
         secret_key: &str,
     ) -> Result<String, Error> {
         let event_hash_hex = event.hash_hex()?;
-        let tags: Vec<Tag> = vec![TagStandard::Hashtag(event_hash_hex.0.clone()).into()];
+        let tags: Vec<Tag> = vec![TagStandard::Hashtag(event_hash_hex.0).into()];
 
         let builder = EventBuilder::new(Kind::from_u16(Self::NOSTR_KIND), "", tags);
 
-        let keys = Keys::parse(secret_key).map_err(|e| Error::from(e))?;
-        let nostr_event = builder.to_event(&keys).map_err(|e| Error::from(e))?;
+        let keys = Keys::parse(secret_key)?;
+        let nostr_event = builder.to_event(&keys)?;
+        let nostr_event_json = nostr_event.try_as_json()?;
 
-        nostr_event.try_as_json().map_err(|e| Error::from(e))
+        Ok(nostr_event_json)
     }
 
     /// Returns [NostrPublicKeyHex] and the [EventHashHex] it pledges to make a [EventPayoutAttestation] to.
     pub fn interpret_nostr_event_json(
         json: &str,
     ) -> Result<(NostrPublicKeyHex, EventHashHex), Error> {
-        let nostr_event = NostrEvent::from_json(json).map_err(|e| Error::from(e))?;
-        nostr_event.verify().map_err(|e| Error::from(e))?;
+        let nostr_event = NostrEvent::from_json(json)?;
+        nostr_event.verify()?;
 
         let nostr_public_key_hex = nostr_event.pubkey.to_hex();
         let Some(hash_tag) = nostr_event.hashtags().next().map(|s| s.to_owned()) else {
@@ -143,10 +145,11 @@ impl EventPayoutAttestation {
             tags,
         );
 
-        let keys = Keys::parse(secret_key).map_err(|e| Error::from(e))?;
-        let nostr_event = builder.to_event(&keys).map_err(|e| Error::from(e))?;
-
-        nostr_event.try_as_json().map_err(|e| Error::from(e))
+        let keys = Keys::parse(secret_key)?;
+        let nostr_event = builder.to_event(&keys)?;
+        let nostr_event_json = nostr_event.try_as_json()?;
+        
+        Ok(nostr_event_json)
     }
 
     /// Returns [NostrPublicKeyHex] and the [EventPayout] it signed.
@@ -154,8 +157,8 @@ impl EventPayoutAttestation {
     pub fn interpret_nostr_event_json(
         json: &str,
     ) -> Result<(NostrPublicKeyHex, EventPayout), Error> {
-        let nostr_event = NostrEvent::from_json(json).map_err(|e| Error::from(e))?;
-        nostr_event.verify().map_err(|e| Error::from(e))?;
+        let nostr_event = NostrEvent::from_json(json)?;
+        nostr_event.verify()?;
 
         let nostr_public_key_hex = nostr_event.pubkey.to_hex();
         let Some(hash_tag) = nostr_event.hashtags().next().map(|s| s.to_owned()) else {
@@ -165,7 +168,6 @@ impl EventPayoutAttestation {
         };
         let content_deserialized_into_units_per_outcome_type: Vec<PayoutUnit> =
             serde_json::from_str(&nostr_event.content)?;
-
         let event_payout = EventPayout {
             event_hash_hex: EventHashHex(hash_tag),
             units_per_outcome: content_deserialized_into_units_per_outcome_type,
