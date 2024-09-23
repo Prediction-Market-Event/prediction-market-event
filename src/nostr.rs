@@ -163,12 +163,12 @@ impl EventPayoutAttestation {
                 "nostr event does not have any hash tags"
             )));
         };
-        let content_deserialized_into_units_per_outcome: Vec<PayoutUnit> =
+        let content_deserialized_into_units_per_outcome_type: Vec<PayoutUnit> =
             serde_json::from_str(&nostr_event.content)?;
 
         let event_payout = EventPayout {
             event_hash_hex: EventHashHex(hash_tag),
-            units_per_outcome: content_deserialized_into_units_per_outcome,
+            units_per_outcome: content_deserialized_into_units_per_outcome_type,
         };
 
         Ok((NostrPublicKeyHex(nostr_public_key_hex), event_payout))
