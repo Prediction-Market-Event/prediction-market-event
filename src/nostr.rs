@@ -35,15 +35,26 @@ impl NewEvent {
         let nostr_event = NostrEvent::from_json(json).map_err(|e| Error::from(e))?;
         nostr_event.verify().map_err(|e| Error::from(e))?;
 
-        PredictionMarketEvent::try_from_json_str(&nostr_event.content)
+        let event = PredictionMarketEvent::try_from_json_str(&nostr_event.content)?;
+
+        let Some(hash_tag) = nostr_event.hashtags().next().map(|s| s.to_owned()) else {
+            return Err(Error::Validation(format!(
+                "nostr event does not have any hash tags"
+            )));
+        };
+        if hash_tag != event.hash_hex()?.0 {
+            return Err(Error::Validation(format!(
+                "nostr event hash tag does not equal hash hex of contained event"
+            )));
+        }
+
+        Ok(event)
     }
 
     /// Returns [Filter] as json that specifies kind [NewEvent]
     ///
     /// A [nostr::TagStandard::Hashtag] containing [PredictionMarketEvent::hash_hex] can
     /// be added to this filter to lookup an event by its hash hex.
-    /// NOTE: [Self::interpret_nostr_event_json] does not verify that the nostr event
-    /// hashtag equals the hash hex of its returned [PredictionMarketEvent].
     pub fn filter_json() -> String {
         Filter::new()
             .kind(Kind::from_u16(Self::NOSTR_KIND))
