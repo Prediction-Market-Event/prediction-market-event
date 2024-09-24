@@ -11,6 +11,9 @@ pub enum Error {
     #[error("nostr event: {0}")]
     NostrEvent(#[from] nostr::event::Error),
 
+    #[error("nostr unsigned event: {0}")]
+    NostrUnsignedEvent(#[from] nostr::event::unsigned::Error),
+
     #[error("nostr event builder: {0}")]
     NostrEventBuilder(#[from] nostr::event::builder::Error),
 

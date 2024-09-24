@@ -1,6 +1,10 @@
 use std::fmt::Display;
 
-use nostr::{Event as NostrEvent, EventBuilder, Filter, JsonUtil, Keys, Kind, Tag, TagStandard};
+#[allow(unused_imports)]
+use nostr::{
+    key::PublicKey, Event as NostrEvent, EventBuilder, Filter, JsonUtil, Kind, Tag,
+    TagStandard, UnsignedEvent as NostrUnsignedEvent,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::{Error, Event as PredictionMarketEvent, EventHashHex, EventPayout, PayoutUnit};
@@ -11,10 +15,10 @@ pub struct NewEvent;
 impl NewEvent {
     pub const NOSTR_KIND: u16 = 6275;
 
-    /// Creates [NewEvent] [NostrEvent] json string
-    pub fn create_nostr_event_json(
+    /// Creates [NewEvent] [NostrUnsignedEvent] json string
+    pub fn create_nostr_unsigned_event_json(
         event: &PredictionMarketEvent,
-        secret_key: &str,
+        public_key: &str,
     ) -> Result<String, Error> {
         let event_json = event.try_to_json_string()?;
 
@@ -23,11 +27,11 @@ impl NewEvent {
 
         let builder = EventBuilder::new(Kind::from_u16(Self::NOSTR_KIND), event_json, tags);
 
-        let keys = Keys::parse(secret_key)?;
-        let nostr_event = builder.to_event(&keys)?;
-        let nostr_event_json = nostr_event.try_as_json()?;
+        let public_key = PublicKey::parse(public_key)?;
+        let nostr_unsigned_event = builder.to_unsigned_event(public_key);
+        let nostr_unsigned_event_json = nostr_unsigned_event.try_as_json()?;
 
-        Ok(nostr_event_json)
+        Ok(nostr_unsigned_event_json)
     }
 
     /// Returns the [PredictionMarketEvent] found in nostr event.
@@ -70,21 +74,21 @@ pub struct FutureEventPayoutAttestationPledge;
 impl FutureEventPayoutAttestationPledge {
     pub const NOSTR_KIND: u16 = 6276;
 
-    /// Creates [FutureEventPayoutAttestationPledge] [NostrEvent] json string
-    pub fn create_nostr_event_json(
+    /// Creates [FutureEventPayoutAttestationPledge] [NostrUnsignedEvent] json string
+    pub fn create_nostr_unsigned_event_json(
         event: &PredictionMarketEvent,
-        secret_key: &str,
+        public_key: &str,
     ) -> Result<String, Error> {
         let event_hash_hex = event.hash_hex()?;
         let tags: Vec<Tag> = vec![TagStandard::Hashtag(event_hash_hex.0).into()];
 
         let builder = EventBuilder::new(Kind::from_u16(Self::NOSTR_KIND), "", tags);
 
-        let keys = Keys::parse(secret_key)?;
-        let nostr_event = builder.to_event(&keys)?;
-        let nostr_event_json = nostr_event.try_as_json()?;
+        let public_key = PublicKey::parse(public_key)?;
+        let nostr_unsigned_event = builder.to_unsigned_event(public_key);
+        let nostr_unsigned_event_json = nostr_unsigned_event.try_as_json()?;
 
-        Ok(nostr_event_json)
+        Ok(nostr_unsigned_event_json)
     }
 
     /// Returns [NostrPublicKeyHex] and the [EventHashHex] it pledges to make a [EventPayoutAttestation] to.
@@ -130,10 +134,10 @@ pub struct EventPayoutAttestation;
 impl EventPayoutAttestation {
     pub const NOSTR_KIND: u16 = 6277;
 
-    /// Creates [EventPayoutAttestation] [NostrEvent] json string
-    pub fn create_nostr_event_json(
+    /// Creates [EventPayoutAttestation] [NostrUnsignedEvent] json string
+    pub fn create_nostr_unsigned_event_json(
         event_payout: &EventPayout,
-        secret_key: &str,
+        public_key: &str,
     ) -> Result<String, Error> {
         let units_per_outcome_json = serde_json::to_string(&event_payout.units_per_outcome)?;
         let tags: Vec<Tag> =
@@ -145,11 +149,11 @@ impl EventPayoutAttestation {
             tags,
         );
 
-        let keys = Keys::parse(secret_key)?;
-        let nostr_event = builder.to_event(&keys)?;
-        let nostr_event_json = nostr_event.try_as_json()?;
-        
-        Ok(nostr_event_json)
+        let public_key = PublicKey::parse(public_key)?;
+        let nostr_unsigned_event = builder.to_unsigned_event(public_key);
+        let nostr_unsigned_event_json = nostr_unsigned_event.try_as_json()?;
+
+        Ok(nostr_unsigned_event_json)
     }
 
     /// Returns [NostrPublicKeyHex] and the [EventPayout] it signed.

@@ -1,4 +1,7 @@
 #[allow(unused_imports)]
+use ::nostr::util::JsonUtil;
+
+#[allow(unused_imports)]
 use crate::{information::*, *};
 
 #[test]
@@ -14,9 +17,15 @@ fn nostr_new_event_1() {
         }),
     );
 
-    let secret_key = ::nostr::SecretKey::generate().to_secret_hex();
+    let keys = ::nostr::Keys::generate();
 
-    let nostr_event_json = nostr::NewEvent::create_nostr_event_json(&event, &secret_key).unwrap();
+    let nostr_unsigned_event_json =
+        nostr::NewEvent::create_nostr_unsigned_event_json(&event, &keys.public_key.to_hex())
+            .unwrap();
+    let nostr_unsigned_event =
+        ::nostr::UnsignedEvent::from_json(nostr_unsigned_event_json).unwrap();
+    let nostr_event = nostr_unsigned_event.sign(&keys).unwrap();
+    let nostr_event_json = nostr_event.try_as_json().unwrap();
     let event_from_nostr_event_json =
         nostr::NewEvent::interpret_nostr_event_json(&nostr_event_json).unwrap();
     assert_eq!(event, event_from_nostr_event_json);
@@ -39,19 +48,24 @@ fn nostr_future_event_payout_attestation_pledge_1() {
 
     let keys = ::nostr::Keys::generate();
 
-    let nostr_event_json = nostr::FutureEventPayoutAttestationPledge::create_nostr_event_json(
-        &event,
-        &keys.secret_key().to_secret_hex(),
-    )
-    .unwrap();
+    let nostr_unsigned_event_json =
+        nostr::FutureEventPayoutAttestationPledge::create_nostr_unsigned_event_json(
+            &event,
+            &keys.public_key.to_hex(),
+        )
+        .unwrap();
+    let nostr_unsigned_event =
+        ::nostr::UnsignedEvent::from_json(nostr_unsigned_event_json).unwrap();
+    let nostr_event = nostr_unsigned_event.sign(&keys).unwrap();
+    let nostr_event_json = nostr_event.try_as_json().unwrap();
     let (pk, h) =
         nostr::FutureEventPayoutAttestationPledge::interpret_nostr_event_json(&nostr_event_json)
             .unwrap();
 
-    assert_eq!(keys.public_key().to_hex(), pk.0);
+    assert_eq!(keys.public_key.to_hex(), pk.0);
     assert_eq!(event.hash_hex().unwrap(), h);
 
-    println!("nostr public key hex: {pk}\n\nevent hash hex: {h}");
+    println!("nostr public key hex: {pk}\nevent hash hex: {h}");
 }
 
 #[test]
@@ -70,15 +84,20 @@ fn nostr_event_payout_attestation_1() {
 
     let keys = ::nostr::Keys::generate();
 
-    let nostr_event_json = nostr::EventPayoutAttestation::create_nostr_event_json(
-        &event_payout,
-        &keys.secret_key().to_secret_hex(),
-    )
-    .unwrap();
+    let nostr_unsigned_event_json =
+        nostr::EventPayoutAttestation::create_nostr_unsigned_event_json(
+            &event_payout,
+            &keys.public_key.to_hex(),
+        )
+        .unwrap();
+    let nostr_unsigned_event =
+        ::nostr::UnsignedEvent::from_json(nostr_unsigned_event_json).unwrap();
+    let nostr_event = nostr_unsigned_event.sign(&keys).unwrap();
+    let nostr_event_json = nostr_event.try_as_json().unwrap();
     let (pk, e) =
         nostr::EventPayoutAttestation::interpret_nostr_event_json(&nostr_event_json).unwrap();
 
-    assert_eq!(keys.public_key().to_hex(), pk.0);
+    assert_eq!(keys.public_key.to_hex(), pk.0);
     assert_eq!(event_payout.event_hash_hex, e.event_hash_hex);
 
     println!("nostr public key hex: {pk}\n\nevent payout: {e:?}");
