@@ -137,6 +137,14 @@ impl EventHashHex {
     pub fn is_valid_format(s: &str) -> bool {
         s.len() == 64 && matches!(s.find(|c: char| !c.is_ascii_hexdigit()), None)
     }
+    /// Returns [Some] if s passes [Self::is_valid_format]
+    pub fn new_checked(s: &str) -> Option<Self> {
+        if Self::is_valid_format(s) {
+            Some(Self(s.to_owned()))
+        } else {
+            None
+        }
+    }
 }
 
 /// Describes a payout for a certain event.

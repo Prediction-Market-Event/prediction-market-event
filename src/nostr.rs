@@ -2,8 +2,8 @@ use std::fmt::Display;
 
 #[allow(unused_imports)]
 use nostr::{
-    key::PublicKey, Event as NostrEvent, EventBuilder, Filter, JsonUtil, Kind, Tag,
-    TagStandard, UnsignedEvent as NostrUnsignedEvent,
+    key::PublicKey, Event as NostrEvent, EventBuilder, Filter, JsonUtil, Kind, Tag, TagStandard,
+    UnsignedEvent as NostrUnsignedEvent,
 };
 use serde::{Deserialize, Serialize};
 
@@ -76,10 +76,9 @@ impl FutureEventPayoutAttestationPledge {
 
     /// Creates [FutureEventPayoutAttestationPledge] [NostrUnsignedEvent] json string
     pub fn create_nostr_unsigned_event_json(
-        event: &PredictionMarketEvent,
+        event_hash_hex: EventHashHex,
         public_key: &str,
     ) -> Result<String, Error> {
-        let event_hash_hex = event.hash_hex()?;
         let tags: Vec<Tag> = vec![TagStandard::Hashtag(event_hash_hex.0).into()];
 
         let builder = EventBuilder::new(Kind::from_u16(Self::NOSTR_KIND), "", tags);
@@ -98,22 +97,19 @@ impl FutureEventPayoutAttestationPledge {
         let nostr_event = NostrEvent::from_json(json)?;
         nostr_event.verify()?;
 
-        let nostr_public_key_hex = nostr_event.pubkey.to_hex();
+        let nostr_public_key_hex = NostrPublicKeyHex(nostr_event.pubkey.to_hex());
         let Some(hash_tag) = nostr_event.hashtags().next().map(|s| s.to_owned()) else {
             return Err(Error::Validation(format!(
                 "nostr event does not have any hash tags"
             )));
         };
-        if !EventHashHex::is_valid_format(&hash_tag) {
+        let Some(event_hash_hex) = EventHashHex::new_checked(&hash_tag) else {
             return Err(Error::Validation(format!(
                 "nostr event hash tag does not have format of event hash hex"
             )));
-        }
+        };
 
-        Ok((
-            NostrPublicKeyHex(nostr_public_key_hex),
-            EventHashHex(hash_tag),
-        ))
+        Ok((nostr_public_key_hex, event_hash_hex))
     }
 
     /// Returns [Filter] as json that specifies kind [FutureEventPayoutAttestationPledge]
@@ -164,20 +160,25 @@ impl EventPayoutAttestation {
         let nostr_event = NostrEvent::from_json(json)?;
         nostr_event.verify()?;
 
-        let nostr_public_key_hex = nostr_event.pubkey.to_hex();
+        let nostr_public_key_hex = NostrPublicKeyHex(nostr_event.pubkey.to_hex());
         let Some(hash_tag) = nostr_event.hashtags().next().map(|s| s.to_owned()) else {
             return Err(Error::Validation(format!(
                 "nostr event does not have any hash tags"
             )));
         };
-        let content_deserialized_into_units_per_outcome_type: Vec<PayoutUnit> =
+        let Some(event_hash_hex) = EventHashHex::new_checked(&hash_tag) else {
+            return Err(Error::Validation(format!(
+                "nostr event hash tag does not have format of event hash hex"
+            )));
+        };
+        let units_per_outcome: Vec<PayoutUnit> =
             serde_json::from_str(&nostr_event.content)?;
         let event_payout = EventPayout {
-            event_hash_hex: EventHashHex(hash_tag),
-            units_per_outcome: content_deserialized_into_units_per_outcome_type,
+            event_hash_hex,
+            units_per_outcome,
         };
 
-        Ok((NostrPublicKeyHex(nostr_public_key_hex), event_payout))
+        Ok((nostr_public_key_hex, event_payout))
     }
 
     /// Returns [Filter] as json that specifies kind [EventPayoutAttestation]
@@ -205,5 +206,13 @@ impl NostrPublicKeyHex {
     /// Checks if s has structure of nostr public key hex.
     pub fn is_valid_format(s: &str) -> bool {
         s.len() == 64 && matches!(s.find(|c: char| !c.is_ascii_hexdigit()), None)
+    }
+    /// Returns [Some] when s passes [Self::is_valid_format]
+    pub fn new_checked(s: &str) -> Option<Self> {
+        if Self::is_valid_format(s) {
+            Some(Self(s.to_owned()))
+        } else {
+            None
+        }
     }
 }
