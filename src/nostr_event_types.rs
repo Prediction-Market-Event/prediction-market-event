@@ -3,8 +3,8 @@ use std::fmt::Display;
 use nostr::key::Keys;
 #[allow(unused_imports)]
 use nostr::{
-    key::PublicKey, Event as NostrEvent, EventBuilder as NostrEventBuilder, Filter, JsonUtil, Kind, Tag, TagStandard,
-    UnsignedEvent as NostrUnsignedEvent,
+    key::PublicKey, Event as NostrEvent, EventBuilder as NostrEventBuilder, Filter, JsonUtil, Kind,
+    Tag, TagStandard, UnsignedEvent as NostrUnsignedEvent,
 };
 use serde::{Deserialize, Serialize};
 
@@ -54,10 +54,11 @@ impl NewEvent {
         Ok(nostr_event_json)
     }
 
-    /// Returns the [PredictionMarketEvent] found in nostr event.
+    /// Accepts [NostrEvent].
+    ///
+    /// Returns the [PredictionMarketEvent].
     /// IMPORTANT: the returned [PredictionMarketEvent] is not validated.
-    pub fn interpret_nostr_event_json(json: &str) -> Result<PredictionMarketEvent, Error> {
-        let nostr_event = NostrEvent::from_json(json)?;
+    pub fn interpret_nostr_event(nostr_event: NostrEvent) -> Result<PredictionMarketEvent, Error> {
         nostr_event.verify()?;
 
         let event = PredictionMarketEvent::try_from_json_str(&nostr_event.content)?;
@@ -74,6 +75,17 @@ impl NewEvent {
         }
 
         Ok(event)
+    }
+
+    /// Accepts [NostrEvent] json.
+    ///
+    /// Returns the [PredictionMarketEvent] found in nostr event json.
+    /// IMPORTANT: the returned [PredictionMarketEvent] is not validated.
+    pub fn interpret_nostr_event_json(json: &str) -> Result<PredictionMarketEvent, Error> {
+        let nostr_event = NostrEvent::from_json(json)?;
+        let res = Self::interpret_nostr_event(nostr_event)?;
+
+        Ok(res)
     }
 
     /// Returns [Filter] as json that specifies kind [NewEvent]
@@ -130,11 +142,12 @@ impl FutureEventPayoutAttestationPledge {
         Ok(nostr_event_json)
     }
 
+    /// Accepts [NostrEvent].
+    ///
     /// Returns [NostrPublicKeyHex] and the [EventHashHex] it pledges to make a [EventPayoutAttestation] to.
-    pub fn interpret_nostr_event_json(
-        json: &str,
+    pub fn interpret_nostr_event(
+        nostr_event: NostrEvent,
     ) -> Result<(NostrPublicKeyHex, EventHashHex), Error> {
-        let nostr_event = NostrEvent::from_json(json)?;
         nostr_event.verify()?;
 
         let nostr_public_key_hex = NostrPublicKeyHex(nostr_event.pubkey.to_hex());
@@ -150,6 +163,18 @@ impl FutureEventPayoutAttestationPledge {
         };
 
         Ok((nostr_public_key_hex, event_hash_hex))
+    }
+
+    /// Accepts [NostrEvent] json.
+    ///
+    /// Returns [NostrPublicKeyHex] and the [EventHashHex] it pledges to make a [EventPayoutAttestation] to.
+    pub fn interpret_nostr_event_json(
+        json: &str,
+    ) -> Result<(NostrPublicKeyHex, EventHashHex), Error> {
+        let nostr_event = NostrEvent::from_json(json)?;
+        let res = Self::interpret_nostr_event(nostr_event)?;
+
+        Ok(res)
     }
 
     /// Returns [Filter] as json that specifies kind [FutureEventPayoutAttestationPledge]
@@ -212,12 +237,13 @@ impl EventPayoutAttestation {
         Ok(nostr_event_json)
     }
 
+    /// Accepts [NostrEvent].
+    ///
     /// Returns [NostrPublicKeyHex] and the [EventPayout] it signed.
     /// IMPORTANT: [EventPayout] is not validated.
-    pub fn interpret_nostr_event_json(
-        json: &str,
+    pub fn interpret_nostr_event(
+        nostr_event: NostrEvent,
     ) -> Result<(NostrPublicKeyHex, EventPayout), Error> {
-        let nostr_event = NostrEvent::from_json(json)?;
         nostr_event.verify()?;
 
         let nostr_public_key_hex = NostrPublicKeyHex(nostr_event.pubkey.to_hex());
@@ -238,6 +264,19 @@ impl EventPayoutAttestation {
         };
 
         Ok((nostr_public_key_hex, event_payout))
+    }
+
+    /// Accepts [NostrEvent] json.
+    ///
+    /// Returns [NostrPublicKeyHex] and the [EventPayout] it signed.
+    /// IMPORTANT: [EventPayout] is not validated.
+    pub fn interpret_nostr_event_json(
+        json: &str,
+    ) -> Result<(NostrPublicKeyHex, EventPayout), Error> {
+        let nostr_event = NostrEvent::from_json(json)?;
+        let res = Self::interpret_nostr_event(nostr_event)?;
+
+        Ok(res)
     }
 
     /// Returns [Filter] as json that specifies kind [EventPayoutAttestation]
