@@ -1,4 +1,4 @@
-use nostr::key::Keys;
+use nostr::{event::Kind, key::Keys};
 #[allow(unused_imports)]
 use nostr::{
     event::{Event as NostrEvent, EventBuilder as NostrEventBuilder},
@@ -13,7 +13,8 @@ pub type JsonStr = str;
 pub type JsonString = String;
 
 pub trait NostrEventUtils {
-    const NOSTR_KIND: u16;
+    const KIND_U16: u16;
+    const KIND: Kind = Kind::Custom(Self::KIND_U16);
 
     type CreateParameter;
 

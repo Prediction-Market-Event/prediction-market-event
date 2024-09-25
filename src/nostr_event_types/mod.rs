@@ -1,32 +1,29 @@
-use serde::{Deserialize, Serialize};
-use trait_dec::Res;
-use std::fmt::Display;
 use crate::{Error, Event as PredictionMarketEvent, EventHashHex, EventPayout, PayoutUnit};
 #[allow(unused_imports)]
 use nostr::{
     key::PublicKey, Event as NostrEvent, EventBuilder as NostrEventBuilder, Filter, JsonUtil, Kind,
     Tag, TagStandard, UnsignedEvent as NostrUnsignedEvent,
 };
+use serde::{Deserialize, Serialize};
+use std::fmt::Display;
+use trait_dec::Res;
 
 mod trait_dec;
 pub use trait_dec::NostrEventUtils;
-
 
 /// [NostrEvent] containing a [PredictionMarketEvent]
 pub struct NewEvent;
 
 impl NostrEventUtils for NewEvent {
-    const NOSTR_KIND: u16 = 6275;
+    const KIND_U16: u16 = 6275;
 
     type CreateParameter = PredictionMarketEvent;
 
-    fn create_nostr_event_builder(
-        event: &Self::CreateParameter,
-    ) -> Res<NostrEventBuilder> {
+    fn create_nostr_event_builder(event: &Self::CreateParameter) -> Res<NostrEventBuilder> {
         let event_json = event.try_to_json_string()?;
         let event_hash_hex = event.hash_hex()?;
         let tags: Vec<Tag> = vec![TagStandard::Hashtag(event_hash_hex.0).into()];
-        let builder = NostrEventBuilder::new(Kind::from_u16(Self::NOSTR_KIND), event_json, tags);
+        let builder = NostrEventBuilder::new(Self::KIND, event_json, tags);
 
         Ok(builder)
     }
@@ -61,7 +58,7 @@ impl NostrEventUtils for NewEvent {
     /// A [nostr::TagStandard::Hashtag] containing [PredictionMarketEvent::hash_hex] can
     /// be added to this filter to lookup a [PredictionMarketEvent] by its [EventHashHex].
     fn filter() -> Filter {
-        Filter::new().kind(Kind::from_u16(Self::NOSTR_KIND))
+        Filter::new().kind(Self::KIND)
     }
 }
 
@@ -69,7 +66,7 @@ impl NostrEventUtils for NewEvent {
 pub struct FutureEventPayoutAttestationPledge;
 
 impl NostrEventUtils for FutureEventPayoutAttestationPledge {
-    const NOSTR_KIND: u16 = 6276;
+    const KIND_U16: u16 = 6276;
 
     type CreateParameter = EventHashHex;
 
@@ -77,7 +74,7 @@ impl NostrEventUtils for FutureEventPayoutAttestationPledge {
         event_hash_hex: &Self::CreateParameter,
     ) -> Res<NostrEventBuilder> {
         let tags: Vec<Tag> = vec![TagStandard::Hashtag(event_hash_hex.0.to_owned()).into()];
-        let builder = NostrEventBuilder::new(Kind::from_u16(Self::NOSTR_KIND), "", tags);
+        let builder = NostrEventBuilder::new(Self::KIND, "", tags);
 
         Ok(builder)
     }
@@ -87,9 +84,7 @@ impl NostrEventUtils for FutureEventPayoutAttestationPledge {
     /// Accepts [NostrEvent].
     ///
     /// Returns [NostrPublicKeyHex] and the [EventHashHex] it pledges to make a [EventPayoutAttestation] to.
-    fn interpret_nostr_event(
-        nostr_event: &NostrEvent,
-    ) -> Res<Self::InterpretResult> {
+    fn interpret_nostr_event(nostr_event: &NostrEvent) -> Res<Self::InterpretResult> {
         nostr_event.verify()?;
 
         let nostr_public_key_hex = NostrPublicKeyHex(nostr_event.pubkey.to_hex());
@@ -112,7 +107,7 @@ impl NostrEventUtils for FutureEventPayoutAttestationPledge {
     /// A [nostr::TagStandard::Hashtag] containing [PredictionMarketEvent::hash_hex] can
     /// be added to this filter to lookup [FutureEventPayoutAttestationPledge] specifying to a certain [PredictionMarketEvent].
     fn filter() -> Filter {
-        Filter::new().kind(Kind::from_u16(Self::NOSTR_KIND))
+        Filter::new().kind(Self::KIND)
     }
 }
 
@@ -120,22 +115,16 @@ impl NostrEventUtils for FutureEventPayoutAttestationPledge {
 pub struct EventPayoutAttestation;
 
 impl NostrEventUtils for EventPayoutAttestation {
-    const NOSTR_KIND: u16 = 6277;
+    const KIND_U16: u16 = 6277;
 
     type CreateParameter = EventPayout;
 
     /// Creates [NostrEventBuilder] with [EventPayoutAttestation] parameters
-    fn create_nostr_event_builder(
-        event_payout: &Self::CreateParameter,
-    ) -> Res<NostrEventBuilder> {
+    fn create_nostr_event_builder(event_payout: &Self::CreateParameter) -> Res<NostrEventBuilder> {
         let units_per_outcome_json = serde_json::to_string(&event_payout.units_per_outcome)?;
         let tags: Vec<Tag> =
             vec![TagStandard::Hashtag(event_payout.event_hash_hex.0.clone()).into()];
-        let builder = NostrEventBuilder::new(
-            Kind::from_u16(Self::NOSTR_KIND),
-            units_per_outcome_json,
-            tags,
-        );
+        let builder = NostrEventBuilder::new(Self::KIND, units_per_outcome_json, tags);
 
         Ok(builder)
     }
@@ -146,9 +135,7 @@ impl NostrEventUtils for EventPayoutAttestation {
     ///
     /// Returns [NostrPublicKeyHex] and the [EventPayout] it signed.
     /// IMPORTANT: [EventPayout] is not validated.
-    fn interpret_nostr_event(
-        nostr_event: &NostrEvent,
-    ) -> Res<Self::InterpretResult> {
+    fn interpret_nostr_event(nostr_event: &NostrEvent) -> Res<Self::InterpretResult> {
         nostr_event.verify()?;
 
         let nostr_public_key_hex = NostrPublicKeyHex(nostr_event.pubkey.to_hex());
@@ -176,7 +163,7 @@ impl NostrEventUtils for EventPayoutAttestation {
     /// A [nostr::TagStandard::Hashtag] containing [PredictionMarketEvent::hash_hex] can be
     /// added to this filter to lookup [EventPayoutAttestation] specifying a certain [PredictionMarketEvent].
     fn filter() -> Filter {
-        Filter::new().kind(Kind::from_u16(Self::NOSTR_KIND))
+        Filter::new().kind(Self::KIND)
     }
 }
 
