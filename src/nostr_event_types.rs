@@ -88,6 +88,14 @@ impl NewEvent {
         Ok(res)
     }
 
+    /// Returns [Filter] that specifies kind [NewEvent]
+    ///
+    /// A [nostr::TagStandard::Hashtag] containing [PredictionMarketEvent::hash_hex] can
+    /// be added to this filter to lookup an event by its hash hex.
+    pub fn filter() -> Filter {
+        Filter::new().kind(Kind::from_u16(Self::NOSTR_KIND))
+    }
+
     /// Returns [Filter] as json that specifies kind [NewEvent]
     ///
     /// A [nostr::TagStandard::Hashtag] containing [PredictionMarketEvent::hash_hex] can
@@ -175,6 +183,14 @@ impl FutureEventPayoutAttestationPledge {
         let res = Self::interpret_nostr_event(nostr_event)?;
 
         Ok(res)
+    }
+
+    /// Returns [Filter] that specifies kind [FutureEventPayoutAttestationPledge]
+    ///
+    /// A [nostr::TagStandard::Hashtag] containing [PredictionMarketEvent::hash_hex] can be
+    /// added to this filter to lookup future attestation pledges relating to a certain [PredictionMarketEvent].
+    pub fn filter() -> Filter {
+        Filter::new().kind(Kind::from_u16(Self::NOSTR_KIND))
     }
 
     /// Returns [Filter] as json that specifies kind [FutureEventPayoutAttestationPledge]
@@ -277,6 +293,14 @@ impl EventPayoutAttestation {
         let res = Self::interpret_nostr_event(nostr_event)?;
 
         Ok(res)
+    }
+
+    /// Returns [Filter] that specifies kind [EventPayoutAttestation]
+    ///
+    /// A [nostr::TagStandard::Hashtag] containing [PredictionMarketEvent::hash_hex] can be
+    /// added to this filter to lookup attestations relating to a certain [PredictionMarketEvent].
+    pub fn filter() -> Filter {
+        Filter::new().kind(Kind::from_u16(Self::NOSTR_KIND))
     }
 
     /// Returns [Filter] as json that specifies kind [EventPayoutAttestation]
