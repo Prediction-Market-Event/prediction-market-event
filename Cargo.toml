@@ -1,6 +1,6 @@
 [package]
 name = "prediction-market-event"
-version = "0.11.0"
+version = "0.12.0"
 edition = "2021"
 description = "a library for creating and attesting to prediction market events"
 readme = "README.md"
