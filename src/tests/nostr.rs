@@ -2,7 +2,7 @@
 use ::nostr::util::JsonUtil;
 
 #[allow(unused_imports)]
-use crate::{information::*, *};
+use crate::{information::*, *, nostr_event_types::NostrEventUtils};
 
 #[test]
 fn nostr_new_event_1() {
@@ -50,7 +50,7 @@ fn nostr_future_event_payout_attestation_pledge_1() {
 
     let nostr_unsigned_event_json =
         nostr_event_types::FutureEventPayoutAttestationPledge::create_nostr_unsigned_event_json(
-            event.hash_hex().unwrap(),
+            &event.hash_hex().unwrap(),
             &keys.public_key.to_hex(),
         )
         .unwrap();
