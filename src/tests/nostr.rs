@@ -20,14 +20,14 @@ fn nostr_new_event_1() {
     let keys = ::nostr::Keys::generate();
 
     let nostr_unsigned_event_json =
-        nostr::NewEvent::create_nostr_unsigned_event_json(&event, &keys.public_key.to_hex())
+        nostr_event_types::NewEvent::create_nostr_unsigned_event_json(&event, &keys.public_key.to_hex())
             .unwrap();
     let nostr_unsigned_event =
         ::nostr::UnsignedEvent::from_json(nostr_unsigned_event_json).unwrap();
     let nostr_event = nostr_unsigned_event.sign(&keys).unwrap();
     let nostr_event_json = nostr_event.try_as_json().unwrap();
     let event_from_nostr_event_json =
-        nostr::NewEvent::interpret_nostr_event_json(&nostr_event_json).unwrap();
+        nostr_event_types::NewEvent::interpret_nostr_event_json(&nostr_event_json).unwrap();
     assert_eq!(event, event_from_nostr_event_json);
 
     println!("nostr event json: {nostr_event_json}");
@@ -49,7 +49,7 @@ fn nostr_future_event_payout_attestation_pledge_1() {
     let keys = ::nostr::Keys::generate();
 
     let nostr_unsigned_event_json =
-        nostr::FutureEventPayoutAttestationPledge::create_nostr_unsigned_event_json(
+        nostr_event_types::FutureEventPayoutAttestationPledge::create_nostr_unsigned_event_json(
             event.hash_hex().unwrap(),
             &keys.public_key.to_hex(),
         )
@@ -59,7 +59,7 @@ fn nostr_future_event_payout_attestation_pledge_1() {
     let nostr_event = nostr_unsigned_event.sign(&keys).unwrap();
     let nostr_event_json = nostr_event.try_as_json().unwrap();
     let (pk, h) =
-        nostr::FutureEventPayoutAttestationPledge::interpret_nostr_event_json(&nostr_event_json)
+        nostr_event_types::FutureEventPayoutAttestationPledge::interpret_nostr_event_json(&nostr_event_json)
             .unwrap();
 
     assert_eq!(keys.public_key.to_hex(), pk.0);
@@ -85,7 +85,7 @@ fn nostr_event_payout_attestation_1() {
     let keys = ::nostr::Keys::generate();
 
     let nostr_unsigned_event_json =
-        nostr::EventPayoutAttestation::create_nostr_unsigned_event_json(
+        nostr_event_types::EventPayoutAttestation::create_nostr_unsigned_event_json(
             &event_payout,
             &keys.public_key.to_hex(),
         )
@@ -95,7 +95,7 @@ fn nostr_event_payout_attestation_1() {
     let nostr_event = nostr_unsigned_event.sign(&keys).unwrap();
     let nostr_event_json = nostr_event.try_as_json().unwrap();
     let (pk, e) =
-        nostr::EventPayoutAttestation::interpret_nostr_event_json(&nostr_event_json).unwrap();
+        nostr_event_types::EventPayoutAttestation::interpret_nostr_event_json(&nostr_event_json).unwrap();
 
     assert_eq!(keys.public_key.to_hex(), pk.0);
     assert_eq!(event_payout.event_hash_hex, e.event_hash_hex);

@@ -3,7 +3,7 @@ use std::fmt::Display;
 use nostr::key::Keys;
 #[allow(unused_imports)]
 use nostr::{
-    key::PublicKey, Event as NostrEvent, EventBuilder, Filter, JsonUtil, Kind, Tag, TagStandard,
+    key::PublicKey, Event as NostrEvent, EventBuilder as NostrEventBuilder, Filter, JsonUtil, Kind, Tag, TagStandard,
     UnsignedEvent as NostrUnsignedEvent,
 };
 use serde::{Deserialize, Serialize};
@@ -16,17 +16,16 @@ pub struct NewEvent;
 impl NewEvent {
     pub const NOSTR_KIND: u16 = 6275;
 
-    fn create_nostr_unsigned_event(
+    /// Creates [NostrEventBuilder] with [NewEvent] parameters
+    pub fn create_nostr_event_builder(
         event: &PredictionMarketEvent,
-        public_key: PublicKey,
-    ) -> Result<NostrUnsignedEvent, Error> {
+    ) -> Result<NostrEventBuilder, Error> {
         let event_json = event.try_to_json_string()?;
         let event_hash_hex = event.hash_hex()?;
         let tags: Vec<Tag> = vec![TagStandard::Hashtag(event_hash_hex.0).into()];
-        let builder = EventBuilder::new(Kind::from_u16(Self::NOSTR_KIND), event_json, tags);
-        let unsigned_event = builder.to_unsigned_event(public_key);
+        let builder = NostrEventBuilder::new(Kind::from_u16(Self::NOSTR_KIND), event_json, tags);
 
-        Ok(unsigned_event)
+        Ok(builder)
     }
 
     /// Creates [NewEvent] [NostrUnsignedEvent] json string
@@ -35,7 +34,8 @@ impl NewEvent {
         public_key: &str,
     ) -> Result<String, Error> {
         let public_key = PublicKey::parse(public_key)?;
-        let nostr_unsigned_event = Self::create_nostr_unsigned_event(event, public_key)?;
+        let builder = Self::create_nostr_event_builder(event)?;
+        let nostr_unsigned_event = builder.to_unsigned_event(public_key);
         let nostr_unsigned_event_json = nostr_unsigned_event.try_as_json()?;
 
         Ok(nostr_unsigned_event_json)
@@ -47,8 +47,8 @@ impl NewEvent {
         secret_key: &str,
     ) -> Result<String, Error> {
         let keys = Keys::parse(secret_key)?;
-        let nostr_unsigned_event = Self::create_nostr_unsigned_event(event, keys.public_key)?;
-        let nostr_event = nostr_unsigned_event.sign(&keys)?;
+        let builder = Self::create_nostr_event_builder(event)?;
+        let nostr_event = builder.to_event(&keys)?;
         let nostr_event_json = nostr_event.try_as_json()?;
 
         Ok(nostr_event_json)
@@ -94,15 +94,14 @@ pub struct FutureEventPayoutAttestationPledge;
 impl FutureEventPayoutAttestationPledge {
     pub const NOSTR_KIND: u16 = 6276;
 
-    fn create_nostr_unsigned_event(
+    /// Creates [NostrEventBuilder] with [FutureEventPayoutAttestationPledge] parameters
+    pub fn create_nostr_event_builder(
         event_hash_hex: EventHashHex,
-        public_key: PublicKey,
-    ) -> Result<NostrUnsignedEvent, Error> {
+    ) -> Result<NostrEventBuilder, Error> {
         let tags: Vec<Tag> = vec![TagStandard::Hashtag(event_hash_hex.0).into()];
-        let builder = EventBuilder::new(Kind::from_u16(Self::NOSTR_KIND), "", tags);
-        let nostr_unsigned_event = builder.to_unsigned_event(public_key);
+        let builder = NostrEventBuilder::new(Kind::from_u16(Self::NOSTR_KIND), "", tags);
 
-        Ok(nostr_unsigned_event)
+        Ok(builder)
     }
 
     /// Creates [FutureEventPayoutAttestationPledge] [NostrUnsignedEvent] json string
@@ -111,7 +110,8 @@ impl FutureEventPayoutAttestationPledge {
         public_key: &str,
     ) -> Result<String, Error> {
         let public_key = PublicKey::parse(public_key)?;
-        let nostr_unsigned_event = Self::create_nostr_unsigned_event(event_hash_hex, public_key)?;
+        let builder = Self::create_nostr_event_builder(event_hash_hex)?;
+        let nostr_unsigned_event = builder.to_unsigned_event(public_key);
         let nostr_unsigned_event_json = nostr_unsigned_event.try_as_json()?;
 
         Ok(nostr_unsigned_event_json)
@@ -123,8 +123,8 @@ impl FutureEventPayoutAttestationPledge {
         secret_key: &str,
     ) -> Result<String, Error> {
         let keys = Keys::parse(secret_key)?;
-        let nostr_unsigned_event = Self::create_nostr_unsigned_event(event_hash_hex, keys.public_key)?;
-        let nostr_event = nostr_unsigned_event.sign(&keys)?;
+        let builder = Self::create_nostr_event_builder(event_hash_hex)?;
+        let nostr_event = builder.to_event(&keys)?;
         let nostr_event_json = nostr_event.try_as_json()?;
 
         Ok(nostr_event_json)
@@ -170,21 +170,20 @@ pub struct EventPayoutAttestation;
 impl EventPayoutAttestation {
     pub const NOSTR_KIND: u16 = 6277;
 
-    fn create_nostr_unsigned_event(
+    /// Creates [NostrEventBuilder] with [EventPayoutAttestation] parameters
+    pub fn create_nostr_event_builder(
         event_payout: &EventPayout,
-        public_key: PublicKey,
-    ) -> Result<NostrUnsignedEvent, Error> {
+    ) -> Result<NostrEventBuilder, Error> {
         let units_per_outcome_json = serde_json::to_string(&event_payout.units_per_outcome)?;
         let tags: Vec<Tag> =
             vec![TagStandard::Hashtag(event_payout.event_hash_hex.0.clone()).into()];
-        let builder = EventBuilder::new(
+        let builder = NostrEventBuilder::new(
             Kind::from_u16(Self::NOSTR_KIND),
             units_per_outcome_json,
             tags,
         );
-        let nostr_unsigned_event = builder.to_unsigned_event(public_key);
 
-        Ok(nostr_unsigned_event)
+        Ok(builder)
     }
 
     /// Creates [EventPayoutAttestation] [NostrUnsignedEvent] json string
@@ -193,7 +192,8 @@ impl EventPayoutAttestation {
         public_key: &str,
     ) -> Result<String, Error> {
         let public_key = PublicKey::parse(public_key)?;
-        let nostr_unsigned_event = Self::create_nostr_unsigned_event(event_payout, public_key)?;
+        let builder = Self::create_nostr_event_builder(event_payout)?;
+        let nostr_unsigned_event = builder.to_unsigned_event(public_key);
         let nostr_unsigned_event_json = nostr_unsigned_event.try_as_json()?;
 
         Ok(nostr_unsigned_event_json)
@@ -205,8 +205,8 @@ impl EventPayoutAttestation {
         secret_key: &str,
     ) -> Result<String, Error> {
         let keys = Keys::parse(secret_key)?;
-        let nostr_unsigned_event = Self::create_nostr_unsigned_event(event_payout, keys.public_key)?;
-        let nostr_event = nostr_unsigned_event.sign(&keys)?;
+        let builder = Self::create_nostr_event_builder(event_payout)?;
+        let nostr_event = builder.to_event(&keys)?;
         let nostr_event_json = nostr_event.try_as_json()?;
 
         Ok(nostr_event_json)
