@@ -58,7 +58,7 @@ impl NewEvent {
     ///
     /// Returns the [PredictionMarketEvent].
     /// IMPORTANT: the returned [PredictionMarketEvent] is not validated.
-    pub fn interpret_nostr_event(nostr_event: NostrEvent) -> Result<PredictionMarketEvent, Error> {
+    pub fn interpret_nostr_event(nostr_event: &NostrEvent) -> Result<PredictionMarketEvent, Error> {
         nostr_event.verify()?;
 
         let event = PredictionMarketEvent::try_from_json_str(&nostr_event.content)?;
@@ -83,7 +83,7 @@ impl NewEvent {
     /// IMPORTANT: the returned [PredictionMarketEvent] is not validated.
     pub fn interpret_nostr_event_json(json: &str) -> Result<PredictionMarketEvent, Error> {
         let nostr_event = NostrEvent::from_json(json)?;
-        let res = Self::interpret_nostr_event(nostr_event)?;
+        let res = Self::interpret_nostr_event(&nostr_event)?;
 
         Ok(res)
     }
@@ -154,7 +154,7 @@ impl FutureEventPayoutAttestationPledge {
     ///
     /// Returns [NostrPublicKeyHex] and the [EventHashHex] it pledges to make a [EventPayoutAttestation] to.
     pub fn interpret_nostr_event(
-        nostr_event: NostrEvent,
+        nostr_event: &NostrEvent,
     ) -> Result<(NostrPublicKeyHex, EventHashHex), Error> {
         nostr_event.verify()?;
 
@@ -180,7 +180,7 @@ impl FutureEventPayoutAttestationPledge {
         json: &str,
     ) -> Result<(NostrPublicKeyHex, EventHashHex), Error> {
         let nostr_event = NostrEvent::from_json(json)?;
-        let res = Self::interpret_nostr_event(nostr_event)?;
+        let res = Self::interpret_nostr_event(&nostr_event)?;
 
         Ok(res)
     }
@@ -258,7 +258,7 @@ impl EventPayoutAttestation {
     /// Returns [NostrPublicKeyHex] and the [EventPayout] it signed.
     /// IMPORTANT: [EventPayout] is not validated.
     pub fn interpret_nostr_event(
-        nostr_event: NostrEvent,
+        nostr_event: &NostrEvent,
     ) -> Result<(NostrPublicKeyHex, EventPayout), Error> {
         nostr_event.verify()?;
 
@@ -290,7 +290,7 @@ impl EventPayoutAttestation {
         json: &str,
     ) -> Result<(NostrPublicKeyHex, EventPayout), Error> {
         let nostr_event = NostrEvent::from_json(json)?;
-        let res = Self::interpret_nostr_event(nostr_event)?;
+        let res = Self::interpret_nostr_event(&nostr_event)?;
 
         Ok(res)
     }
