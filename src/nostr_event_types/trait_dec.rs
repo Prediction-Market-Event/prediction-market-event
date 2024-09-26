@@ -1,3 +1,5 @@
+use std::{fmt::Debug, hash::Hash};
+
 use nostr::{event::Kind, key::Keys};
 #[allow(unused_imports)]
 use nostr::{
@@ -9,14 +11,13 @@ use nostr::{
 };
 
 pub type Res<T> = Result<T, crate::Error>;
-pub type JsonStr = str;
 pub type JsonString = String;
 
 pub trait NostrEventUtils {
     const KIND_U16: u16;
     const KIND: Kind = Kind::Custom(Self::KIND_U16);
 
-    type CreateParameter;
+    type CreateParameter: Debug + Clone + PartialEq + Eq + Hash;
 
     /// Creates [NostrEventBuilder] using [`Self::CreateParameter`] parameters.
     fn create_nostr_event_builder(param: &Self::CreateParameter) -> Res<NostrEventBuilder>;
@@ -45,14 +46,14 @@ pub trait NostrEventUtils {
         Ok(nostr_event_json)
     }
 
-    type InterpretResult;
+    type InterpretResult: Debug + Clone + PartialEq + Eq + Hash;
 
     /// Interpret [NostrEvent] and return [`Self::InterpretResult`].
     fn interpret_nostr_event(nostr_event: &NostrEvent) -> Res<Self::InterpretResult>;
     /// Accepts [NostrEvent] as [JsonString].
     ///
     /// Return information can be found in [`Self::interpret_nostr_event`]
-    fn interpret_nostr_event_json(json: &JsonStr) -> Res<Self::InterpretResult> {
+    fn interpret_nostr_event_json(json: &str) -> Res<Self::InterpretResult> {
         let nostr_event = NostrEvent::from_json(json)?;
         let interpret_result = Self::interpret_nostr_event(&nostr_event)?;
 
