@@ -60,10 +60,12 @@ pub trait NostrEventUtils {
         Ok(interpret_result)
     }
 
-    /// Returns [`Self`] [NostrEvent] [Filter]
-    fn filter() -> Filter;
+    /// Returns [Filter] with kind set to [`Self`]
+    fn filter() -> Filter {
+        Filter::new().kind(Self::KIND)
+    }
     /// Returns [Filter] created in [`Self::filter()`] as [JsonString]
     fn filter_json() -> JsonString {
-        Self::filter().try_as_json().unwrap()
+        Self::filter().as_json()
     }
 }

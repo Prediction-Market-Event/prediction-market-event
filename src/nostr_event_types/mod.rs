@@ -19,6 +19,12 @@ impl NostrEventUtils for NewEvent {
 
     type CreateParameter = PredictionMarketEvent;
 
+    /// Accepts [PredictionMarketEvent]
+    ///
+    /// Returns [NostrEventBuilder] with:
+    /// - kind set to [`Self::Kind`]
+    /// - content set to [PredictionMarketEvent] as json.
+    /// - hashtag containing [PredictionMarketEvent::hash_hex]
     fn create_nostr_event_builder(event: &Self::CreateParameter) -> Res<NostrEventBuilder> {
         let event_json = event.try_to_json_string()?;
         let event_hash_hex = event.hash_hex()?;
@@ -52,14 +58,6 @@ impl NostrEventUtils for NewEvent {
 
         Ok(event)
     }
-
-    /// Returns [Filter] that specifies kind [NewEvent]
-    ///
-    /// A [nostr::TagStandard::Hashtag] containing [PredictionMarketEvent::hash_hex] can
-    /// be added to this filter to lookup a [PredictionMarketEvent] by its [EventHashHex].
-    fn filter() -> Filter {
-        Filter::new().kind(Self::KIND)
-    }
 }
 
 /// [NostrEvent] that pledges the signer will make an [EventPayoutAttestation] for a specific [PredictionMarketEvent] in the future.
@@ -70,6 +68,12 @@ impl NostrEventUtils for FutureEventPayoutAttestationPledge {
 
     type CreateParameter = EventHashHex;
 
+    /// Accepts [EventHashHex]
+    ///
+    /// Returns [NostrEventBuilder] with:
+    /// - kind set to [`Self::Kind`]
+    /// - content set to empty string.
+    /// - hashtag containing [EventHashHex]
     fn create_nostr_event_builder(
         event_hash_hex: &Self::CreateParameter,
     ) -> Res<NostrEventBuilder> {
@@ -101,14 +105,6 @@ impl NostrEventUtils for FutureEventPayoutAttestationPledge {
 
         Ok((nostr_public_key_hex, event_hash_hex))
     }
-
-    /// Returns [Filter] that specifies kind [FutureEventPayoutAttestationPledge].
-    ///
-    /// A [nostr::TagStandard::Hashtag] containing [PredictionMarketEvent::hash_hex] can
-    /// be added to this filter to lookup [FutureEventPayoutAttestationPledge] specifying to a certain [PredictionMarketEvent].
-    fn filter() -> Filter {
-        Filter::new().kind(Self::KIND)
-    }
 }
 
 /// [NostrEvent] that contains an [EventPayout] attestation
@@ -119,7 +115,12 @@ impl NostrEventUtils for EventPayoutAttestation {
 
     type CreateParameter = EventPayout;
 
-    /// Creates [NostrEventBuilder] with [EventPayoutAttestation] parameters
+    /// Accepts [EventPayout]
+    ///
+    /// Returns [NostrEventBuilder] with:
+    /// - kind set to [`Self::Kind`]
+    /// - content set [EventPayout::units_per_outcome] as json
+    /// - hashtag containing [EventPayout::event_hash_hex]
     fn create_nostr_event_builder(event_payout: &Self::CreateParameter) -> Res<NostrEventBuilder> {
         let units_per_outcome_json = serde_json::to_string(&event_payout.units_per_outcome)?;
         let tags: Vec<Tag> =
@@ -156,14 +157,6 @@ impl NostrEventUtils for EventPayoutAttestation {
         };
 
         Ok((nostr_public_key_hex, event_payout))
-    }
-
-    /// Returns [Filter] that specifies kind [EventPayoutAttestation]
-    ///
-    /// A [nostr::TagStandard::Hashtag] containing [PredictionMarketEvent::hash_hex] can be
-    /// added to this filter to lookup [EventPayoutAttestation] specifying a certain [PredictionMarketEvent].
-    fn filter() -> Filter {
-        Filter::new().kind(Self::KIND)
     }
 }
 
