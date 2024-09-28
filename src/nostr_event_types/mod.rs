@@ -12,6 +12,10 @@ mod trait_dec;
 pub use trait_dec::NostrEventUtils;
 
 /// [NostrEvent] containing a [PredictionMarketEvent]
+/// 
+/// - kind set to [NewEvent::KIND]
+/// - content set to [PredictionMarketEvent] as json.
+/// - hashtag containing [PredictionMarketEvent::hash_hex]
 pub struct NewEvent;
 
 impl NostrEventUtils for NewEvent {
@@ -22,7 +26,7 @@ impl NostrEventUtils for NewEvent {
     /// Accepts [PredictionMarketEvent]
     ///
     /// Returns [NostrEventBuilder] with:
-    /// - kind set to [`Self::Kind`]
+    /// - kind set to [NewEvent::KIND]
     /// - content set to [PredictionMarketEvent] as json.
     /// - hashtag containing [PredictionMarketEvent::hash_hex]
     fn create_nostr_event_builder(event: &Self::CreateParameter) -> Res<NostrEventBuilder> {
@@ -61,6 +65,10 @@ impl NostrEventUtils for NewEvent {
 }
 
 /// [NostrEvent] that pledges the signer will make an [EventPayoutAttestation] for a specific [PredictionMarketEvent] in the future.
+/// 
+/// - kind set to [FutureEventPayoutAttestationPledge::KIND]
+/// - content is empty.
+/// - hashtag containing [EventHashHex]
 pub struct FutureEventPayoutAttestationPledge;
 
 impl NostrEventUtils for FutureEventPayoutAttestationPledge {
@@ -71,8 +79,8 @@ impl NostrEventUtils for FutureEventPayoutAttestationPledge {
     /// Accepts [EventHashHex]
     ///
     /// Returns [NostrEventBuilder] with:
-    /// - kind set to [`Self::Kind`]
-    /// - content set to empty string.
+    /// - kind set to [FutureEventPayoutAttestationPledge::KIND]
+    /// - content is empty.
     /// - hashtag containing [EventHashHex]
     fn create_nostr_event_builder(
         event_hash_hex: &Self::CreateParameter,
@@ -108,6 +116,10 @@ impl NostrEventUtils for FutureEventPayoutAttestationPledge {
 }
 
 /// [NostrEvent] that contains an [EventPayout] attestation
+///
+/// - kind set to [EventPayoutAttestation::KIND]
+/// - content set [EventPayout::units_per_outcome] as json
+/// - hashtag containing [EventPayout::event_hash_hex]
 pub struct EventPayoutAttestation;
 
 impl NostrEventUtils for EventPayoutAttestation {
@@ -118,7 +130,7 @@ impl NostrEventUtils for EventPayoutAttestation {
     /// Accepts [EventPayout]
     ///
     /// Returns [NostrEventBuilder] with:
-    /// - kind set to [`Self::Kind`]
+    /// - kind set to [EventPayoutAttestation::KIND]
     /// - content set [EventPayout::units_per_outcome] as json
     /// - hashtag containing [EventPayout::event_hash_hex]
     fn create_nostr_event_builder(event_payout: &Self::CreateParameter) -> Res<NostrEventBuilder> {
