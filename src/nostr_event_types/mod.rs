@@ -5,7 +5,7 @@ use nostr::{
     Tag, TagStandard, UnsignedEvent as NostrUnsignedEvent,
 };
 use serde::{Deserialize, Serialize};
-use std::fmt::Display;
+use std::{fmt::Display, str::FromStr};
 use trait_dec::Res;
 
 mod trait_dec;
@@ -105,11 +105,7 @@ impl NostrEventUtils for FutureEventPayoutAttestationPledge {
                 "nostr event does not have any hash tags"
             )));
         };
-        let Some(event_hash_hex) = EventHashHex::new_checked(&hash_tag) else {
-            return Err(Error::Validation(format!(
-                "nostr event hash tag does not have format of event hash hex"
-            )));
-        };
+        let event_hash_hex = EventHashHex::from_str(&hash_tag)?;
 
         Ok((nostr_public_key_hex, event_hash_hex))
     }
@@ -157,11 +153,7 @@ impl NostrEventUtils for EventPayoutAttestation {
                 "nostr event does not have any hash tags"
             )));
         };
-        let Some(event_hash_hex) = EventHashHex::new_checked(&hash_tag) else {
-            return Err(Error::Validation(format!(
-                "nostr event hash tag does not have format of event hash hex"
-            )));
-        };
+        let event_hash_hex = EventHashHex::from_str(&hash_tag)?;
         let units_per_outcome: Vec<PayoutUnit> = serde_json::from_str(&nostr_event.content)?;
         let event_payout = EventPayout {
             event_hash_hex,
@@ -186,12 +178,16 @@ impl NostrPublicKeyHex {
     pub fn is_valid_format(s: &str) -> bool {
         s.len() == 64 && matches!(s.find(|c: char| !c.is_ascii_hexdigit()), None)
     }
-    /// Returns [Some] when s passes [Self::is_valid_format]
-    pub fn new_checked(s: &str) -> Option<Self> {
+}
+
+impl FromStr for NostrPublicKeyHex {  
+    type Err = Error;
+    
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         if Self::is_valid_format(s) {
-            Some(Self(s.to_owned()))
+            Ok(Self(s.to_owned()))
         } else {
-            None
+            Err(Error::Validation(format!("invalid format")))
         }
     }
 }

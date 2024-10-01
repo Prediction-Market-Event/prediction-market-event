@@ -4,7 +4,7 @@ use crate::Error;
 use rand::random;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use sha2::{Digest, Sha256};
-use std::fmt::Display;
+use std::{fmt::Display, str::FromStr};
 
 /// Prediction market event
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
@@ -137,12 +137,16 @@ impl EventHashHex {
     pub fn is_valid_format(s: &str) -> bool {
         s.len() == 64 && matches!(s.find(|c: char| !c.is_ascii_hexdigit()), None)
     }
-    /// Returns [Some] if s passes [Self::is_valid_format]
-    pub fn new_checked(s: &str) -> Option<Self> {
+}
+
+impl FromStr for EventHashHex {  
+    type Err = Error;
+    
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         if Self::is_valid_format(s) {
-            Some(Self(s.to_owned()))
+            Ok(Self(s.to_owned()))
         } else {
-            None
+            Err(Error::Validation(format!("invalid format")))
         }
     }
 }
